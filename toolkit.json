@@ -1,0 +1,50 @@
+{
+  "id": "ads",
+  "name": "Ads OS",
+  "version": "1.0.0",
+  "sharedVersion": "7",
+  "attachingVersion": "1",
+  "app": "apps/ads/",
+  "media": true,
+  "dataFiles": [
+    "apps/ads/data/ads.json"
+  ],
+  "skills": [
+    "update-my-ads",
+    "build-a-campaign",
+    "build-in-account",
+    "analyse-campaign",
+    "make-account-change",
+    "how-did-the-ads-do",
+    "what-should-i-change",
+    "my-ads-check-in"
+  ],
+  "setupSteps": [
+    "setup/ads-01-install-claude-ads.md",
+    "setup/ads-02-where-your-ads-are.md",
+    "setup/ads-03-your-customer.md",
+    "setup/ads-04-budget-and-results.md",
+    "setup/ads-05-first-look.md"
+  ],
+  "contextFiles": [
+    "context/ads.md"
+  ],
+  "connections": [
+    "setup/connections/meta-ads.md",
+    "setup/connections/google-ads.md"
+  ],
+  "claudeSection": "apps/ads/ATTACH-CLAUDE.md",
+  "reads": [
+    "pipeline"
+  ],
+  "sends": [
+    {
+      "to": "task-list",
+      "what": "a suggested task for each suggestion you approve, and for each new campaign waiting for you to switch it on, waiting for your click"
+    },
+    {
+      "to": "pipeline",
+      "what": "new leads from your Meta lead forms as suggested deals, waiting for your click, only when Claude can read the lead details through the connection"
+    }
+  ]
+}

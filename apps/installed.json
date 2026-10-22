@@ -1,0 +1,13 @@
+{
+  "tools": [
+    {
+      "id": "ads",
+      "name": "Ads OS",
+      "app": "apps/ads/",
+      "media": true,
+      "dataFiles": [
+        "apps/ads/data/ads.json"
+      ]
+    }
+  ]
+}

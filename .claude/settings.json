@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(./**)",
+      "Edit(./apps/ads/data/**)",
+      "Write(./apps/ads/data/**)",
+      "Edit(./apps/home/data/**)",
+      "Write(./apps/home/data/**)",
+      "Edit(./context/**)",
+      "Write(./context/**)",
+      "Edit(./files/**)",
+      "Write(./files/**)",
+      "Edit(./skills-to-upload/**)",
+      "Write(./skills-to-upload/**)",
+      "Edit(./setup/progress.md)",
+      "WebSearch",
+      "WebFetch",
+      "Bash(bash setup/scripts/start-task-list.sh)",
+      "Bash(powershell -ExecutionPolicy Bypass -File setup\\scripts\\start-task-list.ps1)",
+      "Bash(bash setup/scripts/install-claude-ads.sh)",
+      "Bash(powershell -ExecutionPolicy Bypass -File setup\\scripts\\install-claude-ads.ps1)",
+      "Bash(node apps/ads/app/report.js:*)"
+    ]
+  }
+}

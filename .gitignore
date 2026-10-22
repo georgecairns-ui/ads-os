@@ -1,0 +1,38 @@
+# Built zips
+dist/
+
+# Safety copies the app makes before every save
+*.backup.json
+apps/ads/data/*.tmp-*
+
+# A customer's own skill and its zip: never ships
+skills-to-upload/*.zip
+
+# The claude-ads skills and agents, installed during setup from George's fork (see
+# setup/scripts/install-claude-ads.sh). They are never committed or shipped.
+.claude/skills/ads/
+.claude/skills/ads-*/
+.claude/skills/.claude-ads-*.manifest
+.claude/agents/
+
+# claude-ads' own setup profile and runs, kept in this folder while someone uses it
+.claude-ads/
+
+# Computer clutter
+.DS_Store
+._*
+Thumbs.db
+desktop.ini
+
+# Local Claude Code files that belong to one computer, not the kit
+.claude/launch.json
+.claude/settings.local.json
+.claude/.cc-writes/
+
+# Home layout: one person's choice of boxes, made while testing
+apps/home/data/
+__pycache__/
+*.pyc
+
+# Photos and videos added to ads: they stay on this computer, never in the kit
+apps/*/data/media/

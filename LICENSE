@@ -1,0 +1,39 @@
+Ads OS Licence
+Copyright (c) 2026 Get AI Powers Ltd. All rights reserved except as set out below.
+
+In plain English: you can use Ads OS for your own business, for free, and change it as much
+as you like. You can't sell it, or offer it as your own product or service.
+
+1. What you may do
+   a) Download, install and use Ads OS to run your own business, or a business you work for.
+   b) Change it in any way to suit that business: its look, its wording, its skills and its setup.
+   c) Make copies for the people in that business.
+   d) Help someone else install it for their own business, as long as they get it under this same
+      licence (point them to the original download).
+
+2. What you may not do
+   a) Sell Ads OS, or any changed version of it, or charge for access to it.
+   b) Include it, or a large part of it, in a product, template pack, course or paid service that you
+      sell or give away as your own.
+   c) Remove or hide this licence, or the "by Get AI Powers" credit, from copies you share.
+   d) Use the Get AI Powers name or logo to suggest that Get AI Powers made, approved or supports
+      your changed version.
+
+3. Your information
+   Ads OS runs on your computer and through your own Claude account. Get AI Powers does not
+   receive or see your tasks, emails, calls or business notes.
+
+4. No warranty
+   Ads OS is provided as it is, without any warranty. You are responsible for checking anything
+   Claude drafts or suggests before you act on it, including anything to do with tax, money or the
+   law. To the extent the law allows, Get AI Powers Ltd is not liable for any loss arising from its use.
+
+5. Third-party parts
+   The fonts in apps/shared/fonts are under the SIL Open Font License (see apps/shared/fonts/OFL.txt).
+   The apps you connect (Meta Ads, Google Ads, email, calendar and others) have their own terms.
+   claude-ads (https://github.com/AgriciDaniel/claude-ads) is by AgriciDaniel and is under the MIT
+   licence, not this one. It is not part of Ads OS: setup installs it separately into .claude/skills
+   and .claude/agents from https://github.com/georgecairns-ui/claude-ads, and its own licence is copied
+   in beside it (.claude/skills/ads/LICENSE).
+
+For commercial licences, white-label versions or help setting it up: getaipowers.com
