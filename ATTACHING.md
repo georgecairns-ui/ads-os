@@ -1,6 +1,6 @@
 # How the tools attach to each other
 
-Version 2, 6 October 2026. This file is identical in every tool in the small business toolkit. If it changes, it changes in all of them at once.
+Version 3, 23 October 2026. This file is identical in every tool in the small business toolkit. If it changes, it changes in all of them at once.
 
 ## The idea
 
@@ -31,7 +31,7 @@ Every tool is free. Each one is a way into a conversation with Get AI Powers. So
 | `skill-and-folder-map-os` | Skill and Folder Map OS | `apps/skill-map/` | See everything Claude could take off your plate, mapped across the business |
 | `proposal-writing-os` | Proposal Writing OS | `apps/proposals/` | Put everything about a client in one folder, get a proposal in your brand |
 | `content-machine-os` | Content Machine OS | `apps/content/` | A week of posts planned and drafted in your voice |
-| `money-view-os` | Money View OS | `apps/money/` | Cash today and the next 12 weeks, with what's owed to you |
+| `money-view-os` | Money View OS | `apps/money/` | Your money month by month from your accounts app, with a 12-week forecast and the tax to put aside |
 | `whats-new-in-claude-os` | What's New in Claude OS | `apps/whats-new/` | Claude's updates, translated into what they mean for your business |
 | `ads-os` | Ads OS | `apps/ads/` | Google and Meta ads on one plain-English screen, with campaigns Claude builds and runs once you say yes |
 
@@ -90,11 +90,17 @@ Usually on a call with Get AI Powers (see the menu section above). When the pers
 4. Shared parts: if the incoming `sharedVersion` is newer, updates `apps/server/` and `apps/shared/`, keeping the person's own `theme.css` values (colours, fonts, logo).
 5. Adds the tool to `apps/installed.json`, so it appears in the sidebar.
 6. Adds the tool's `ATTACH-CLAUDE.md` lines (its skills table and day-to-day rules) to the main `CLAUDE.md` under "Attached tools".
-7. Runs only the tool's own setup steps, and skips any question `context/` already answers. Nobody gets asked what their business does twice.
-8. Restarts the helper, opens the app and shows the new tool in the sidebar.
-9. Notes what it did in `setup/progress.md`.
+7. Adds the tool's own permissions to the folder's `.claude/settings.json`, so Claude doesn't ask every time it uses the new tool. It reads the incoming tool's `permissions.allow` list and adds an entry only when all of these are true:
+   - The folder's list doesn't already have it, letter for letter.
+   - It belongs to the incoming tool: an `Edit(...)` or `Write(...)` inside `./apps/<tool>/` or on the skill folders the tool makes for itself (Content Machine OS's `./.claude/skills/*-what-works/**`), or a `Bash(...)` that runs a script in `apps/<tool>/` or a setup script the tool brings with it (`setup/scripts/`), or `WebSearch` or `WebFetch`. The entries every tool shares (`Read(./**)`, `context/`, `files/`, `apps/home/data/`, `skills-to-upload/`, `setup/progress.md`, the helper's start script) are already in the folder and are left alone.
+   - It doesn't send, post, publish, upload or delete anything: no email, message or ad platform tool, no `git push`, `curl`, `rm` or the like, and no open-ended command such as `Bash(ls:*)`.
 
-Detaching works the other way round. The tool's data moves to `files/99-archive/`, never deleted.
+   It never removes or changes an entry already there, never touches `deny`, `ask` or any other setting, and never touches `.claude/settings.local.json` (the person's own). It tells the person in plain words what it added, and anything it left out so Claude will ask first. A new entry takes effect when Claude is next started in the folder.
+8. Runs only the tool's own setup steps, and skips any question `context/` already answers. Nobody gets asked what their business does twice.
+9. Restarts the helper, opens the app and shows the new tool in the sidebar.
+10. Notes what it did in `setup/progress.md`, including each permission it added, letter for letter.
+
+Detaching works the other way round. The tool's data moves to `files/99-archive/`, never deleted. The permissions it added (from `setup/progress.md`) come out of `.claude/settings.json`, unless another attached tool still has the same entry.
 
 ## Passing things between tools
 
