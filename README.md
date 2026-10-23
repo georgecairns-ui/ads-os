@@ -10,7 +10,7 @@ On Meta, Claude switches a campaign on, pauses a campaign or an ad, or changes a
 
 Google's own connection only reads, so Claude never changes anything on Google Ads. Google changes stay with you, with a link to Google Ads and a step-by-step task. Claude Code also asks you before it touches your Meta or Google account at all, so you approve a Meta change twice: in the app, then in Claude Code.
 
-Ads OS is part of a toolkit of 8 free tools from Get AI Powers. The others (a task list, Pipeline OS, proposals and more) show in the app's menu, and Get AI Powers sets them up with you on a free call.
+Ads OS is part of a toolkit of 7 free tools from Get AI Powers. The others (a task list, Pipeline OS, proposals and more) show in the app's menu, and Get AI Powers sets them up with you on a free call.
 
 ## What happens when you type /setup
 
