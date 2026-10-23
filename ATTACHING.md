@@ -4,7 +4,7 @@ Version 3, 23 October 2026. This file is identical in every tool in the small bu
 
 ## The idea
 
-Every tool is a complete kit on its own, built exactly the way Task List OS is built. Someone can use just the task list, or just the pipeline, and it works. Attach a second tool and it slots into the same folder: one app at http://localhost:4747 with both tools in the sidebar, one set of business notes, one files folder, and one Claude that knows how to run both. Attach all 8 and they've got the whole toolkit.
+Every tool is a complete kit on its own, built exactly the way Task List OS is built. Someone can use just the task list, or just the pipeline, and it works. Attach a second tool and it slots into the same folder: one app at http://localhost:4747 with both tools in the sidebar, one set of business notes, one files folder, and one Claude that knows how to run both. Attach all 7 and they've got the whole toolkit.
 
 There is no separate "whole toolkit" product. The whole toolkit is simply every tool attached to every other tool.
 
@@ -14,7 +14,7 @@ Every tool is free. Each one is a way into a conversation with Get AI Powers. So
 
 ## The menu: every tool on show, the rest locked
 
-- The shared sidebar always shows all 8 tools, from `apps/shared/catalogue.json`.
+- The shared sidebar always shows all 7 tools, from `apps/shared/catalogue.json`.
 - Tools listed in `apps/installed.json` open as normal.
 - Every other tool shows with a small padlock, readable but not openable. Clicking it opens a calm panel: the tool's name, what it does in 2 plain sentences, "Get AI Powers sets this up with you on a free call", and a **Book a free call** button.
 - The button opens the booking page in a new tab. The link lives in one place, `apps/shared/catalogue.json`: https://calendly.com/d/d2bq-8jx-r39/claudit-audit with `utm_source` set to the tool they're using, `utm_medium=toolkit-app` and `utm_campaign` set to the locked tool they clicked, so we can see which tool brought each call in.
@@ -32,7 +32,6 @@ Every tool is free. Each one is a way into a conversation with Get AI Powers. So
 | `proposal-writing-os` | Proposal Writing OS | `apps/proposals/` | Put everything about a client in one folder, get a proposal in your brand |
 | `content-machine-os` | Content Machine OS | `apps/content/` | A week of posts planned and drafted in your voice |
 | `money-view-os` | Money View OS | `apps/money/` | Your money month by month from your accounts app, with a 12-week forecast and the tax to put aside |
-| `whats-new-in-claude-os` | What's New in Claude OS | `apps/whats-new/` | Claude's updates, translated into what they mean for your business |
 | `ads-os` | Ads OS | `apps/ads/` | Google and Meta ads on one plain-English screen, with campaigns Claude builds and runs once you say yes |
 
 ## Same shape in every tool
@@ -119,9 +118,8 @@ Detaching works the other way round. The tool's data moves to `files/99-archive/
 | Pipeline OS | People and tasks (Task List OS), proposal status | Tasks: chases due. Proposal writer: "proposal needed" when a deal reaches that stage. Money view: expected income when a deal is won. Content machine: a case study idea when a deal is won |
 | Skill and Folder Map OS | `context/`, which tools are installed (to show what's already covered) | Tasks: build the start-here skills |
 | Proposal Writing OS | Pipeline deals | Tasks: follow up a sent proposal. Pipeline: move the deal's stage when a proposal is sent, won or lost. Money view: expected income when won |
-| Content Machine OS | Pipeline wins, What's New ideas, `context/voice.md` | Tasks: posts due today |
+| Content Machine OS | Pipeline wins, `context/voice.md` | Tasks: posts due today |
 | Money View OS | Pipeline and proposal wins, ad spend | Tasks: chase overdue invoices (using the `polite-chaser` skill) |
-| What's New in Claude OS | `context/tools.md`, which tools are installed | Tasks: things to try. Content machine: updates worth posting about |
 | Ads OS | Pipeline (deals won from ads) | Tasks: approved ad changes, and campaigns waiting to be switched on. Pipeline: new Meta leads as suggested deals. Money view reads ad spend itself, as money going out |
 
 ## The helper and the sidebar
