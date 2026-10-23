@@ -50,14 +50,6 @@
       "repository": "money-view-os"
     },
     {
-      "id": "whats-new",
-      "name": "What's New in Claude OS",
-      "description": "Claude's latest updates, translated into what they mean for your business. Each one comes with a plain suggestion of what to try, so you never miss something useful.",
-      "icon": "newspaper",
-      "app": "apps/whats-new/",
-      "repository": "whats-new-in-claude-os"
-    },
-    {
       "id": "ads",
       "name": "Ads OS",
       "description": "Your Google and Meta ads on one plain-English screen. Claude builds and analyses your campaigns and makes the changes you approve, and nothing spends until you say yes.",

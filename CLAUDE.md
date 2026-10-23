@@ -51,7 +51,7 @@ If `context/ads.md` still says "Status: not filled in yet", you can't draft a ca
 | **http://localhost:4747** | The app. It opens on Home (a dashboard of boxes they arrange themselves), then Ads: one page with views to flick between at the top (Overview, Campaigns, New campaigns, This week), a Health check button and a Settings gear. The **Brain dump** button at the top (shared by every tool, and on Home) records a voice note or a typed one. A small helper in `apps/server/` runs it on this computer. If it isn't running, use `.claude/skills/open-task-list` |
 | `Open Ads OS.html` | Double-clicking it goes to the link above when the app is running |
 | `apps/ads/` | The ads app. Its data is `apps/ads/data/ads.json`; `apps/ads/CLAUDE.md` explains the format and the rules |
-| `apps/shared/` | The app's look: `theme.css` holds every colour and font. Also the toolkit menu: `catalogue.json` lists all 8 tools and the booking link |
+| `apps/shared/` | The app's look: `theme.css` holds every colour and font. Also the toolkit menu: `catalogue.json` lists all 7 tools and the booking link |
 | `apps/installed.json` | The tools in this folder. The menu and the helper both read it |
 | `context/` | Your notes about the business (see above) |
 | `files/` | Their documents, in numbered folders. `files/04-marketing/ads/` holds the Google import files and build sheets, and `exports/` the reports they download |
