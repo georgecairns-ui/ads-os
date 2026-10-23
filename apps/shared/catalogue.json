@@ -44,7 +44,7 @@
     {
       "id": "money",
       "name": "Money View OS",
-      "description": "Cash today and the next 12 weeks, with what's owed to you. It reads your accounts so you can see a tight week coming and chase the right invoices in time.",
+      "description": "Your money month by month: what's invoiced, paid and due, and a forecast of the next 12 weeks. Raise invoices into your accounts app, and see what to put aside for tax. It never moves money.",
       "icon": "wallet",
       "app": "apps/money/",
       "repository": "money-view-os"
