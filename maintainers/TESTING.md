@@ -124,7 +124,7 @@ Search the whole kit (`apps/ads/`, `.claude/skills/` apart from the installed cl
 
 ## 8. Menu and locked-tool panel
 
-As `SHARED-V3-CHANGES.md` section 5 describes: on a scratch copy, the sidebar shows Home, Ads OS as an open dropdown with its one page (Ads, carrying the count of things waiting on the owner), and the other 8 tools locked under "More tools" in catalogue order. Folding the dropdown shows the total waiting and the choice is remembered. Each locked tool opens the panel with the right tracking on its button link; Escape and a click outside close it; it works by keyboard and at phone width. `showMoreTools: false` in `catalogue.json` hides the locked tools completely. The `ads` entry reads as in `SHARED-CATALOGUE-RENAME.md`, `proposals` reads Proposal OS and `file-finder` is gone.
+As `SHARED-V3-CHANGES.md` section 5 describes: on a scratch copy, the sidebar shows Home, Ads OS as an open dropdown with its one page (Ads, carrying the count of things waiting on the owner), and the other 6 tools locked under "More tools" in catalogue order. Folding the dropdown shows the total waiting and the choice is remembered. Each locked tool opens the panel with the right tracking on its button link; Escape and a click outside close it; it works by keyboard and at phone width. `showMoreTools: false` in `catalogue.json` hides the locked tools completely. The `ads` entry reads as in `SHARED-CATALOGUE-RENAME.md`, `proposals` reads Proposal OS and `file-finder` is gone.
 
 ## 9. Setup, as the customer's Claude
 
