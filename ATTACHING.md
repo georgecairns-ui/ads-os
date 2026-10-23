@@ -31,7 +31,7 @@ Every tool is free. Each one is a way into a conversation with Get AI Powers. So
 | `skill-and-folder-map-os` | Skill and Folder Map OS | `apps/skill-map/` | See everything Claude could take off your plate, mapped across the business |
 | `proposal-writing-os` | Proposal Writing OS | `apps/proposals/` | Put everything about a client in one folder, get a proposal in your brand |
 | `content-machine-os` | Content Machine OS | `apps/content/` | A week of posts planned and drafted in your voice |
-| `money-view-os` | Money View OS | `apps/money/` | Cash today and the next 12 weeks, with what's owed to you |
+| `money-view-os` | Money View OS | `apps/money/` | Your money month by month from your accounts app, with a 12-week forecast and the tax to put aside |
 | `whats-new-in-claude-os` | What's New in Claude OS | `apps/whats-new/` | Claude's updates, translated into what they mean for your business |
 | `ads-os` | Ads OS | `apps/ads/` | Google and Meta ads on one plain-English screen, with campaigns Claude builds and runs once you say yes |
 

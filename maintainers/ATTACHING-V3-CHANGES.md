@@ -1,6 +1,6 @@
 # ATTACHING.md version 3: what changed since version 2
 
-ATTACHING.md version 3, 23 October 2026. Nothing else in the file changed, and the shared version (`apps/shared/VERSION`) stays at 7: no helper or shared file is touched.
+ATTACHING.md version 3, 23 October 2026. Nothing else in the file changed apart from the Money View OS row below, and the shared version (`apps/shared/VERSION`) stays at 7: no helper or shared file is touched.
 
 **Made in Ads OS first.** `ATTACHING.md` must be copied byte for byte to Task List OS and every other tool by pull request, after George says yes.
 
@@ -14,6 +14,7 @@ ATTACHING.md version 3, 23 October 2026. Nothing else in the file changed, and t
 | "Attaching: what Claude does" | New step 7: add the incoming tool's own `permissions.allow` entries to the folder's `.claude/settings.json`. The old steps 7 to 9 are now 8 to 10. Step 5, the only step referred to elsewhere, keeps its number |
 | Step 10 (was 9) | `setup/progress.md` records each permission added, letter for letter |
 | Detaching | The permissions the tool added come out again, unless another attached tool still has the same entry |
+| Toolkit table | The Money View OS row reads "Your money month by month from your accounts app, with a 12-week forecast and the tax to put aside", matching the menu since the 23 October menu pull requests |
 
 Step 7 sits before the tool's setup steps on purpose: Ads OS's setup runs `setup/scripts/install-claude-ads.sh`, so its permission has to be there first.
 
