@@ -32,6 +32,7 @@ Then tell them, briefly:
 - **Their limits:** the daily and weekly limits they set, and that Claude won't build a campaign that goes over them.
 - **What to say next:** "update my ads" (or press Refresh figures), "how did the ads do?", "what should I change?", "make me a campaign", "what's waiting on me in ads?".
 - That Google and Meta count a result differently, so each is judged against its own target.
+- That they can say "get the latest version" any time and you will bring the app up to date, keeping everything of theirs.
 - Their link, **http://localhost:4747/ads/**. Bookmark it.
 
 ## 3. A weekly look (optional)

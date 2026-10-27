@@ -48,7 +48,7 @@ If `context/ads.md` still says "Status: not filled in yet", you can't draft a ca
 
 | Folder | What's in it |
 |---|---|
-| **http://localhost:4747** | The app. It opens on Home (a dashboard of boxes they arrange themselves), then Ads: one page with views to flick between at the top (Overview, Campaigns, New campaigns, This week), a Health check button and a Settings gear. The **Brain dump** button at the top (shared by every tool, and on Home) records a voice note or a typed one. A small helper in `apps/server/` runs it on this computer. If it isn't running, use `.claude/skills/open-task-list` |
+| **http://localhost:4747** | The app. It opens on Home (a dashboard of boxes they arrange themselves), then Ads: one page with views to flick between at the top (Overview, Campaigns, New campaigns, This week), a Health check button and a Settings gear. The **Brain dump** button at the top (shared by every tool, and on Home) records a voice note or a typed one. A small helper in `apps/server/` runs it on this computer. If it isn't running, use `.claude/skills/open-the-app` |
 | `Open Ads OS.html` | Double-clicking it goes to the link above when the app is running |
 | `apps/ads/` | The ads app. Its data is `apps/ads/data/ads.json`; `apps/ads/CLAUDE.md` explains the format and the rules |
 | `apps/shared/` | The app's look: `theme.css` holds every colour and font. Also the toolkit menu: `catalogue.json` lists all 7 tools and the booking link |
@@ -75,7 +75,8 @@ When a request matches a skill in `.claude/skills/`, read that skill's `SKILL.md
 | "How did the ads do?", "ads this week", "weekly ads summary" | `.claude/skills/how-did-the-ads-do` |
 | "What should I change?", "what's wasting money?", "any suggestions?" | `.claude/skills/what-should-i-change` |
 | "What's waiting on me in ads?", "anything to switch on?" (and the To do tab) | `.claude/skills/my-ads-check-in` |
-| "Open my ads", "it's not loading" | `.claude/skills/open-task-list` (it starts the app for every tool in this folder) |
+| "Open my ads", "it's not loading" | `.claude/skills/open-the-app` (it starts the app for every tool in this folder) |
+| "Get the latest version", "any updates?" | `.claude/skills/get-updates` |
 | "Sort my brain dump", a messy note (and every note from the Brain dump button) | `.claude/skills/sort-brain-dump` (shared by every tool) |
 | "Make this sound less robotic", any text you write | `.claude/skills/human-email` |
 | "Write it like me", "learn how I write" | `.claude/skills/write-like-me` |

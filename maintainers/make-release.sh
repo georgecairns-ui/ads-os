@@ -147,7 +147,7 @@ if any(re.search(r"\b(curl|wget|ssh|scp|rm|sendmail)\b", p) for p in perms):
     problems.append(".claude/settings.json pre-approves a command that sends or deletes")
 # The only commands pre-approved are the start scripts, the claude-ads install scripts and the report
 for p in perms:
-    if p.startswith("Bash(") and not re.fullmatch(r"Bash\((bash setup/scripts/(start-task-list|install-claude-ads)\.sh|powershell -ExecutionPolicy Bypass -File setup\\scripts\\(start-task-list|install-claude-ads)\.ps1|node apps/ads/app/report\.js:\*)\)", p):
+    if p.startswith("Bash(") and not re.fullmatch(r"Bash\((bash setup/scripts/(start-app|install-claude-ads)\.sh|powershell -ExecutionPolicy Bypass -File setup\\scripts\\(start-app|install-claude-ads)\.ps1|node apps/ads/app/report\.js:\*)\)", p):
         problems.append(f".claude/settings.json pre-approves a command it shouldn't: {p}")
 if "Setup: not done yet" not in (root / "CLAUDE.md").read_text():
     problems.append("CLAUDE.md says setup is done")
@@ -156,6 +156,33 @@ if "Setup: not done yet" not in (root / "CLAUDE.md").read_text():
 for f in sorted((root / "apps").glob("*/data/media/**/*")):
     if f.is_file() and f.name != ".gitkeep":
         problems.append(f"{f.relative_to(root)} is a person's own photo or video and must not ship")
+
+# A customer's saved download never ships: setup/as-installed/ holds only its README
+for f in sorted((root / "setup/as-installed").rglob("*")):
+    if f.is_file() and f.name not in ("README.md", ".DS_Store"):
+        problems.append(f"{f.relative_to(root)} is a customer's saved download and must not ship")
+
+# The shared version in toolkit.json must be the one in apps/shared/VERSION
+shared_version = (root / "apps/shared/VERSION").read_text().split()[0]
+toolkit = json.loads((root / "toolkit.json").read_text())
+if str(toolkit.get("sharedVersion")) != shared_version:
+    problems.append(f"toolkit.json sharedVersion is {toolkit.get('sharedVersion')!r} but apps/shared/VERSION says {shared_version}: change them together")
+
+# Shared parts are identical in every tool, so they must not name one. No file may use the old start-up names,
+# and no message in the scripts, the helper or the shared page code may say "Ads OS" (they read the tool's name from toolkit.json)
+skip_dirs = {".git", "dist", "maintainers", "node_modules"}
+for f in sorted(root.rglob("*")):
+    if not f.is_file() or skip_dirs & set(f.relative_to(root).parts) or f.suffix in (".png", ".jpg", ".woff2", ".zip", ".gz", ".ico"):
+        continue
+    txt = f.read_text(errors="ignore")
+    rel = str(f.relative_to(root))
+    for old in ("open-task-list", "start-task-list"):
+        if old in txt:
+            problems.append(f"{rel} uses the old name {old} (it is now open-the-app / start-app, the same in every tool)")
+    # setup/scripts/ excludes the install-claude-ads scripts (this tool's own, not shared). The shared comment's
+    # own illustration (`for example "Ads OS"`) is left out, since it uses Ads OS as the example in every tool.
+    if re.match(r"setup/scripts/(?!install-claude-ads)|apps/server/|apps/shared/js/", rel) and re.search(r"Ads OS", re.sub(r'for example "Ads OS"', "", txt)):
+        problems.append(f"{rel} names a tool (Ads OS): shared parts read the name from toolkit.json")
 for p in problems:
     print("  - " + p, file=sys.stderr)
 sys.exit(1 if problems else 0)
@@ -164,6 +191,7 @@ PYEOF
 # ---------- 2. Copy, leaving out what customers don't need ----------
 mkdir -p "$OUT" "$DIST"
 rsync -a \
+  --include 'setup/as-installed/README.md' --exclude 'setup/as-installed/*' \
   --exclude '.git' --exclude '.gitignore' --exclude 'dist' --exclude 'maintainers' \
   --exclude '.claude/launch.json' --exclude '.claude/settings.local.json' --exclude '.claude/.cc-writes' \
   --exclude '*.backup.json' --exclude '*.tmp-*' --exclude 'apps/home/data' --exclude '.DS_Store' --exclude '._*' --exclude 'Thumbs.db' --exclude 'desktop.ini' \
@@ -173,7 +201,7 @@ rsync -a \
 find "$OUT" -mindepth 2 -type d -name .claude -empty -prune -exec rm -rf {} +
 
 # ---------- 3. Checks ----------
-for f in "START-HERE.md" "CLAUDE.md" "LICENSE" "README.md" "Open Ads OS.html" "apps/ads/index.html" "apps/ads/data/ads.json" "apps/ads/data/approvals.json" "apps/ads/menu.json" "apps/ads/home-boxes.js" "apps/ads/claude-jobs.json" "apps/ads/CLAUDE.md" "apps/ads/ATTACH-CLAUDE.md" "apps/ads/app/app.js" "apps/ads/app/app.css" "apps/ads/app/views.css" "apps/ads/app/model.js" "apps/ads/app/report.js" "apps/ads/app/components.js" "apps/ads/app/charts.js" "apps/ads/app/drawer.js" "apps/ads/app/media.js" "apps/ads/app/settings.js" "apps/ads/app/view-overview.js" "apps/ads/app/view-campaigns.js" "apps/ads/app/view-builds.js" "apps/ads/app/view-week.js" "apps/ads/app/view-health.js" "context/ads.md" "setup/progress.md" "setup/05-get-to-know-the-business.md" "setup/ads-01-install-claude-ads.md" "setup/ads-02-where-your-ads-are.md" "setup/ads-03-your-customer.md" "setup/ads-04-budget-and-results.md" "setup/ads-05-first-look.md" "setup/09-check-and-hand-over.md" "setup/scripts/install-claude-ads.sh" "setup/scripts/install-claude-ads.ps1" "setup/connections/meta-ads.md" "setup/connections/google-ads.md" "files/04-marketing/ads/README.md" "files/04-marketing/ads/exports/README.md" "skills-to-upload/README.md" ".claude/skills/README.md" ".claude/settings.json" ".claude/skills/build-a-campaign/references/campaign-basics.md" ".claude/skills/build-in-account/references/connections.md" ".claude/skills/build-in-account/references/google-ads-editor.md" ".claude/skills/update-my-ads/references/exports.md" "setup/scripts/save-key.sh" "setup/scripts/start-task-list.sh" "apps/server/server.js" "apps/server/server.py" "setup/connections/README.md" "toolkit.json" "ATTACHING.md" "apps/installed.json" "apps/shared/catalogue.json" "apps/shared/VERSION" "apps/shared/sidebar.css" "apps/shared/js/sidebar.js" "apps/shared/js/theme.js" "apps/shared/js/braindump.js" ".claude/skills/sort-brain-dump/SKILL.md" "apps/shared/images/claude-icon.png" "apps/home/index.html" "apps/home/home.js" "apps/home/home.css" "apps/shared/fonts/Figtree-Variable.woff2" "docs/CUSTOMISING.md" "docs/PRIVACY-AND-SAFETY.md"; do
+for f in "START-HERE.md" "CLAUDE.md" "LICENSE" "README.md" "Open Ads OS.html" "apps/ads/index.html" "apps/ads/data/ads.json" "apps/ads/data/approvals.json" "apps/ads/menu.json" "apps/ads/home-boxes.js" "apps/ads/claude-jobs.json" "apps/ads/CLAUDE.md" "apps/ads/ATTACH-CLAUDE.md" "apps/ads/app/app.js" "apps/ads/app/app.css" "apps/ads/app/views.css" "apps/ads/app/model.js" "apps/ads/app/report.js" "apps/ads/app/components.js" "apps/ads/app/charts.js" "apps/ads/app/drawer.js" "apps/ads/app/media.js" "apps/ads/app/settings.js" "apps/ads/app/view-overview.js" "apps/ads/app/view-campaigns.js" "apps/ads/app/view-builds.js" "apps/ads/app/view-week.js" "apps/ads/app/view-health.js" "context/ads.md" "setup/progress.md" "setup/05-get-to-know-the-business.md" "setup/ads-01-install-claude-ads.md" "setup/ads-02-where-your-ads-are.md" "setup/ads-03-your-customer.md" "setup/ads-04-budget-and-results.md" "setup/ads-05-first-look.md" "setup/09-check-and-hand-over.md" "setup/scripts/install-claude-ads.sh" "setup/scripts/install-claude-ads.ps1" "setup/connections/meta-ads.md" "setup/connections/google-ads.md" "files/04-marketing/ads/README.md" "files/04-marketing/ads/exports/README.md" "skills-to-upload/README.md" ".claude/skills/README.md" ".claude/settings.json" ".claude/skills/build-a-campaign/references/campaign-basics.md" ".claude/skills/build-in-account/references/connections.md" ".claude/skills/build-in-account/references/google-ads-editor.md" ".claude/skills/update-my-ads/references/exports.md" "setup/scripts/save-key.sh" "setup/scripts/start-app.sh" "apps/server/server.js" "apps/server/server.py" "setup/connections/README.md" "toolkit.json" "ATTACHING.md" "apps/installed.json" "apps/shared/catalogue.json" "apps/shared/VERSION" "apps/shared/sidebar.css" "apps/shared/js/sidebar.js" "apps/shared/js/theme.js" "apps/shared/js/braindump.js" ".claude/skills/sort-brain-dump/SKILL.md" "apps/shared/images/claude-icon.png" "apps/home/index.html" "apps/home/home.js" "apps/home/home.css" "apps/shared/fonts/Figtree-Variable.woff2" "docs/CUSTOMISING.md" "docs/PRIVACY-AND-SAFETY.md" "setup/as-installed/README.md" ".claude/skills/get-updates/SKILL.md" ".claude/skills/open-the-app/SKILL.md" ".claude/skills/match-my-brand/SKILL.md"; do
   [ -e "$OUT/$f" ] || fail "missing $f"
 done
 for f in apps/ads/data/ads.json apps/ads/data/approvals.json apps/ads/menu.json apps/ads/claude-jobs.json toolkit.json apps/installed.json apps/shared/catalogue.json .claude/settings.json; do
