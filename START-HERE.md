@@ -6,7 +6,13 @@
 
 **Claude, this file is for you.** The person you work for has copied Ads OS onto their computer and wants it set up.
 
-**If you've only just copied it for them** (you're running in a different folder, such as their home or Documents folder): setup must run from inside the Ads OS folder, because that's where your skills, permissions and the ads app live. Copy it with `git clone https://github.com/georgecairns-ui/ads-os.git "$HOME/Documents/Ads OS"` (on Windows, into their Documents folder the same way). If git isn't installed, tell them in one sentence and help them install it. Then give them the one line to open it, `cd ~/Documents/"Ads OS" && claude` (in the Claude desktop app: open the Code tab and choose that folder), tell them to pick "Yes, I trust this folder", then type `/setup`. Stop there; don't start the setup from the wrong folder. Follow this file, then the step files in `setup/`, in order.
+**If you've only just copied it for them** (you're running in a different folder, such as their home or Documents folder): setup must run from inside the Ads OS folder, because that's where your skills, permissions and the ads app live. Copy it as a plain folder, so it's theirs alone and not linked to the public version (nothing to install first):
+  - Mac: `D="$HOME/Documents/Ads OS"; mkdir -p "$D/setup/as-installed" && curl -fsL -o "$D/setup/as-installed/ads-os.tar.gz" https://github.com/georgecairns-ui/ads-os/archive/refs/heads/main.tar.gz && tar -xzf "$D/setup/as-installed/ads-os.tar.gz" --strip-components 1 -C "$D"`
+  - Windows (PowerShell): `$d = "$HOME\Documents\Ads OS"; New-Item -ItemType Directory -Force "$d\setup\as-installed" | Out-Null; curl.exe -fsL -o "$d\setup\as-installed\ads-os.tar.gz" https://github.com/georgecairns-ui/ads-os/archive/refs/heads/main.tar.gz; tar -xzf "$d\setup\as-installed\ads-os.tar.gz" --strip-components 1 -C $d`
+
+  The download is kept in `setup/as-installed/` on purpose: it is what lets you bring this folder up to date later, without losing anything of theirs (the `get-updates` skill).
+
+  If you've already copied it another way (for example with `git clone`, or into a different folder), that's fine: use that folder. Then give them the one line to open it, `cd ~/Documents/"Ads OS" && claude` (in the Claude desktop app: open the Code tab and choose that folder), tell them to pick "Yes, I trust this folder", then type `/setup`. Stop there; don't start the setup from the wrong folder. Follow this file, then the step files in `setup/`, in order.
 
 ## What Ads OS is
 

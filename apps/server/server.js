@@ -4,8 +4,8 @@
   ----------------------------------------------------------------------------
   It calls itself by the folder's name: "name" in toolkit.json (for example "Ads OS").
   Claude starts this during setup. It does 2 things:
-    1. Serves the task list app at http://localhost:4747 so it opens like any web page.
-    2. Lets the app read and save your task file (apps/task-list/data/tasks.json), so there's
+    1. Serves the app at http://localhost:4747 so it opens like any web page.
+    2. Lets the app read and save your data files (for example apps/task-list/data/tasks.json), so there's
        no folder to pick and nothing to allow. Claude's changes appear within seconds.
        If other tools from the toolkit are attached, it saves their data files too, but only the
        ones listed for each tool in apps/installed.json.
@@ -21,6 +21,8 @@
     - It keeps a backup (for example tasks.backup.json) before every save, and saves in a way that
       can't leave a half-written file.
     - It refuses requests from other websites.
+    - A save based on an older copy of the file is refused (409) instead of overwriting a change made in between.
+    - A badly formed request gets an error answer. It never stops the helper.
 
   It can also ask Claude to do a small job straight away, such as sorting a new voice note or
   updating a deal from call notes: it runs Claude Code on this computer ("claude -p ...") in this
@@ -40,6 +42,7 @@ const os = require("os");
 const path = require("path");
 const { spawn } = require("child_process");
 const { pipeline } = require("stream");
+const crypto = require("crypto");
 
 const PORT = Number(process.env.TLOS_PORT || 4747);
 const HOST = "127.0.0.1";
@@ -176,6 +179,19 @@ function modified(file) {
   try { return fs.statSync(file || DATA).mtimeMs; } catch (e) { return 0; }
 }
 
+// A fingerprint of a file's contents, sent as the ETag header on every read and every save. A save that
+// sends it back in If-Match is only accepted while the file is still exactly that (otherwise 409), so
+// an edit made in between, for example by Claude, is never overwritten. A save without it works as before.
+function versionOf(text) { return crypto.createHash("sha256").update(text).digest("hex").slice(0, 24); }
+function versionHeader(text) { return { ETag: '"' + versionOf(text) + '"' }; }
+// null: no version sent (an older app). undefined: one was sent but it is not a version this helper gave out.
+function sentVersion(req) {
+  const header = req.headers["if-match"];
+  if (header === undefined || String(header).trim() === "") return null;
+  const m = /^\s*(?:W\/)?"?([0-9a-f]{8,64})"?\s*$/i.exec(header);
+  return m ? m[1].toLowerCase() : undefined;
+}
+
 // The tools in this folder, from apps/installed.json. If it's missing or unreadable, just the task list.
 function installedTools() {
   let list = null;
@@ -260,7 +276,7 @@ function readBody(req) {
       if (size > MAX_BODY) { reject(new Error("too large")); req.destroy(); return; }
       chunks.push(c);
     });
-    req.on("end", function () { resolve(Buffer.concat(chunks).toString("utf8")); });
+    req.on("end", function () { resolve(Buffer.concat(chunks)); });
     req.on("error", reject);
   });
 }
@@ -277,7 +293,7 @@ function saveFile(file, text) {
 function readFile(res, file) {
   let text;
   try { text = fs.readFileSync(file, "utf8"); } catch (e) { return sendJson(res, 404, { error: "missing" }); }
-  return send(res, 200, text, TYPES[".json"], { "X-Modified": String(modified(file)) });
+  return send(res, 200, text, TYPES[".json"], Object.assign({ "X-Modified": String(modified(file)) }, versionHeader(text)));
 }
 
 // Checks and saves a PUT. The task file must keep its task list; any other data file must be a JSON object.
@@ -287,16 +303,27 @@ async function writeFile(req, res, file) {
   let text;
   try { text = await readBody(req); } catch (e) { return sendJson(res, 413, { error: "too large" }); }
   let data;
-  try { data = JSON.parse(text); } catch (e) { return sendJson(res, 400, { error: "not valid" }); }
+  try { data = JSON.parse(new TextDecoder("utf-8", { fatal: true }).decode(text)); } catch (e) { return sendJson(res, 400, { error: "not valid" }); }   // bytes that aren't text are refused, never "repaired"
   if (!data || typeof data !== "object" || Array.isArray(data)) return sendJson(res, 400, { error: "not valid" });
   if (file === DATA && !Array.isArray(data.tasks)) return sendJson(res, 400, { error: "no tasks list" });
-  try { saveFile(file, JSON.stringify(data, null, 2) + "\n"); } catch (e) { return sendJson(res, 500, { error: "save failed" }); }
-  return sendJson(res, 200, { modified: modified(file) });
+  // Check and save in one go (nothing else runs in between), so 2 saves can't both pass the check
+  const based = sentVersion(req);
+  if (based === undefined) return sendJson(res, 400, { error: "not valid" });
+  const out = JSON.stringify(data, null, 2) + "\n";
+  try {
+    if (based !== null) {
+      let current = null;
+      try { current = fs.readFileSync(file, "utf8"); } catch (e) { /* the file is gone: also a change */ }
+      if (current === null || versionOf(current) !== based) return sendJson(res, 409, { error: "changed since you read it" });
+    }
+    saveFile(file, out);
+  } catch (e) { return sendJson(res, 500, { error: "save failed" }); }
+  return send(res, 200, JSON.stringify({ modified: modified(file), version: versionOf(out) }), TYPES[".json"], versionHeader(out));
 }
 
 async function handleApi(req, res, url) {
   if (url === "/api/alive.js") {
-    // Used by "Open Task List.html" to check the helper is running
+    // Used by the launcher page at the top of the folder to check the helper is running
     return send(res, 200, "window.tlosAlive = true;", TYPES[".js"]);
   }
   // Where this folder is and its name, so the app can open Claude Code right here ("Open in Claude" on a task)
@@ -333,7 +360,7 @@ async function handleApi(req, res, url) {
     return sendJson(res, 200, { available: AUTO_CLAUDE && !!findClaude(), running: claudeRun.running, queued: claudeRun.queued,
       job: claudeRun.job, startedAt: claudeRun.startedAt, lastRunAt: claudeRun.lastRunAt, lastResult: claudeRun.lastResult, lastJob: claudeRun.lastJob });
   }
-  // /api/claude/sort-brain-dump (Task List OS's voice notes) or /api/claude/run/<tool>/<job>
+  // /api/claude/sort-brain-dump (the shared Brain dump) or /api/claude/run/<tool>/<job>
   const run = /^\/api\/claude\/run\/([a-z0-9-]+)\/([a-z0-9-]+)$/.exec(url);
   if ((url === "/api/claude/sort-brain-dump" || run) && req.method === "POST") {
     // Only the app may ask: same origin, and a JSON request (other websites can't send one without permission)
@@ -356,7 +383,9 @@ function homePage() {
 
 function handleFile(req, res, url) {
   if (url === "/" || url === "") { res.writeHead(302, { Location: homePage() }); return res.end(); }
-  let rel = decodeURIComponent(url);
+  let rel;
+  try { rel = decodeURIComponent(url); } catch (e) { return send(res, 400, "Bad request"); }   // for example GET /%
+  if (rel.indexOf("\0") !== -1) return send(res, 400, "Bad request");
   if (rel.endsWith("/")) rel += "index.html";
   const file = path.resolve(APPS, "." + rel);
   // Never serve anything outside the apps folder, and never the data backups
@@ -368,14 +397,19 @@ function handleFile(req, res, url) {
 }
 
 const server = http.createServer(function (req, res) {
-  if (!hostOk(req)) return send(res, 403, "Not allowed");
-  const url = (req.url || "/").split("?")[0];
-  if (url.startsWith("/api/")) {
-    handleApi(req, res, url).catch(function () { sendJson(res, 500, { error: "unexpected" }); });
-  } else if (req.method === "GET" || req.method === "HEAD") {
-    handleFile(req, res, url);
-  } else {
-    send(res, 405, "Not allowed");
+  try {
+    if (!hostOk(req)) return send(res, 403, "Not allowed");
+    const url = (req.url || "/").split("?")[0];
+    if (url.startsWith("/api/")) {
+      handleApi(req, res, url).catch(function () { if (!res.headersSent) sendJson(res, 500, { error: "unexpected" }); else res.end(); });
+    } else if (req.method === "GET" || req.method === "HEAD") {
+      handleFile(req, res, url);
+    } else {
+      send(res, 405, "Not allowed");
+    }
+  } catch (e) {
+    // Whatever a request contains, it must never stop the helper for everyone else
+    if (!res.headersSent) sendJson(res, 500, { error: "unexpected" }); else res.end();
   }
 });
 

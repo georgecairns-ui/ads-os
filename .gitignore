@@ -1,8 +1,9 @@
 # Built zips
 dist/
 
-# Safety copies the app makes before every save
+# Safety copies the app makes before every save, and the half-written file a save is in the middle of
 *.backup.json
+*.saving
 apps/ads/data/*.tmp-*
 
 # A customer's own skill and its zip: never ships
@@ -33,6 +34,10 @@ desktop.ini
 apps/home/data/
 __pycache__/
 *.pyc
+
+# The saved download of each tool as a customer installed it: theirs, not the kit's
+setup/as-installed/*
+!setup/as-installed/README.md
 
 # Photos and videos added to ads: they stay on this computer, never in the kit
 apps/*/data/media/

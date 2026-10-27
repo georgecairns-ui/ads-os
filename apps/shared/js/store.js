@@ -169,13 +169,19 @@
       const text = await r.text();
       let data;
       try { data = JSON.parse(text); if (opts.validate) opts.validate(data); } catch (e) { throw StoreError("bad-file", "The data file has a mistake in it, so it could not be read.", e); }
-      return { data: data, text: text, lastModified: Number(r.headers.get("X-Modified")) || 0 };
+      return { data: data, text: text, lastModified: Number(r.headers.get("X-Modified")) || 0, version: r.headers.get("ETag") };
     }
-    async function helperWrite(data) {
+    // Saves, saying which copy the change was made on (If-Match). If the file changed since (Claude wrote
+    // to it), the helper answers 409 and nothing is overwritten: returns null so the caller can try again.
+    // A helper that sends no version (an older one) just saves, as it always did.
+    async function helperWrite(data, version) {
       let r;
+      const headers = { "Content-Type": "application/json" };
+      if (version) headers["If-Match"] = version;
       try {
-        r = await fetch(opts.api, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) });
+        r = await fetch(opts.api, { method: "PUT", headers: headers, body: JSON.stringify(data) });
       } catch (e) { throw StoreError("helper-stopped", "The helper on this computer isn't running.", e); }
+      if (r.status === 409) return null;
       if (!r.ok) throw StoreError("save-failed", "Your change could not be saved.");
       return (await r.json()).modified;
     }
@@ -311,10 +317,17 @@
         const runHelper = async function () {
           state.busy = true;
           try {
-            const latest = await helperRead();   // fresh copy, including anything Claude just wrote
-            const data = latest.data;
-            change(data);
-            state.lastModified = await helperWrite(data);
+            // Fresh copy, including anything Claude just wrote. If the file changes between that read and
+            // the save, read again and make the same change on the new copy (up to 2 more times).
+            let data = null, saved = null;
+            for (let attempt = 0; attempt < 3 && saved === null; attempt++) {
+              const latest = await helperRead();
+              data = latest.data;
+              change(data);
+              saved = await helperWrite(data, latest.version);
+            }
+            if (saved === null) throw StoreError("save-failed", "Your change could not be saved because the file kept changing. Try again.");
+            state.lastModified = saved;
             state.data = data;
             setStatus("ready", { folderName: state.helperName, helper: true, savedAt: new Date() });
             opts.onData(state.data, "save");

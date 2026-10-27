@@ -17,8 +17,8 @@
       "Edit(./setup/progress.md)",
       "WebSearch",
       "WebFetch",
-      "Bash(bash setup/scripts/start-task-list.sh)",
-      "Bash(powershell -ExecutionPolicy Bypass -File setup\\scripts\\start-task-list.ps1)",
+      "Bash(bash setup/scripts/start-app.sh)",
+      "Bash(powershell -ExecutionPolicy Bypass -File setup\\scripts\\start-app.ps1)",
       "Bash(bash setup/scripts/install-claude-ads.sh)",
       "Bash(powershell -ExecutionPolicy Bypass -File setup\\scripts\\install-claude-ads.ps1)",
       "Bash(node apps/ads/app/report.js:*)"

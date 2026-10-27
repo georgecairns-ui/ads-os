@@ -8,7 +8,7 @@ One line: fills Review with unpaid invoices to chase and bills due, and answers 
 
 1. Say "Let's connect your accounts" to the person. Say "connect" and "a connection", never MCP, API, JSON or repo.
 2. In the Claude app or on claude.ai, go to the connectors area (ask the person what they see), find "Xero", click Connect, sign in with the business Xero login, and choose the organisation.
-3. In Claude Code: it appears automatically once Claude Code is signed in with a claude.ai subscription. Check with `/mcp`.
+3. In Claude Code: it appears once Claude Code is signed in with a claude.ai subscription. Check your own list of connections; if it isn't there yet, ask them to close Claude Code and open it again (in the Terminal, `/mcp` also lists them).
 
 ## If neither works
 

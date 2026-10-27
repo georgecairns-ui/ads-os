@@ -228,8 +228,8 @@ Each prompt ends "Never switch anything on, never change a campaign that already
 
 Shared skills are copied unchanged from the template:
 
-- `connect-a-tool`, `file-it`, `human-email`, `keep-context-fresh`, `match-my-brand`
-- `open-task-list`, `polite-chaser`, `setup`, `sort-brain-dump`, `write-like-me`
+- `connect-a-tool`, `file-it`, `get-updates`, `human-email`, `keep-context-fresh`, `match-my-brand`
+- `open-the-app`, `polite-chaser`, `setup`, `sort-brain-dump`, `write-like-me`
 
 The tool's own skills (names must not start with `ads`, which is claude-ads' prefix):
 

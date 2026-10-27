@@ -53,9 +53,9 @@ It's **yours to shape**: your platforms, your limits, your target, your own colo
 
 1. **Open Claude Code** in the Claude desktop app (the Code tab) or in the Terminal (on Windows, PowerShell). Any folder will do for this first step.
 2. **Ask Claude to fetch the kit.** Paste this:
-   > Copy https://github.com/georgecairns-ui/ads-os into a folder called "Ads OS" in my Documents, then tell me how to open it and set it up.
+   > Copy Ads OS from https://github.com/georgecairns-ui/ads-os into a folder called "Ads OS" in my Documents, using the copy line in its START-HERE.md (not git), then tell me how to open it and set it up.
 
-   Claude copies everything onto your computer and gives you one line to open the new folder. In the desktop app, you choose the folder instead. (If your computer asks to install "command line developer tools" or Git, say yes; it's free and takes a few minutes.)
+   Claude copies everything onto your computer and gives you one line to open the new folder. In the desktop app, you choose the folder instead.
 3. **Open the Ads OS folder in Claude Code and choose "Yes, I trust this folder".** The first time, Claude Code asks whether you trust the folder and warns that it pre-approves some permissions. Those permissions only let Claude update your ads app and your business notes, add the ad-planning skills, look things up on public web pages and start the app, without stopping to ask each time. They don't let Claude touch your ad accounts: Claude Code asks you before every single thing it does in your Meta or Google account. Press the down arrow, then Enter.
 4. **Type `/setup`.**
 
