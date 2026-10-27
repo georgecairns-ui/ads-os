@@ -2,8 +2,10 @@
   "permissions": {
     "allow": [
       "Read(./**)",
-      "Edit(./apps/ads/data/**)",
-      "Write(./apps/ads/data/**)",
+      "Edit(./apps/ads/data/ads.json)",
+      "Write(./apps/ads/data/ads.json)",
+      "Edit(./apps/ads/data/media/**)",
+      "Write(./apps/ads/data/media/**)",
       "Edit(./apps/home/data/**)",
       "Write(./apps/home/data/**)",
       "Edit(./context/**)",
@@ -20,6 +22,39 @@
       "Bash(bash setup/scripts/install-claude-ads.sh)",
       "Bash(powershell -ExecutionPolicy Bypass -File setup\\scripts\\install-claude-ads.ps1)",
       "Bash(node apps/ads/app/report.js:*)"
+    ],
+    "deny": [
+      "mcp__*eta_ads*__*delete*",
+      "mcp__*eta_Ads*__*delete*",
+      "mcp__*acebook*__*delete*",
+      "mcp__*eta_ads*__*remove*",
+      "mcp__*eta_Ads*__*remove*",
+      "mcp__*acebook*__*remove*",
+      "mcp__*eta_ads*__*archive*",
+      "mcp__*eta_Ads*__*archive*",
+      "mcp__*acebook*__*archive*",
+      "mcp__*oogle_ads*__*create*",
+      "mcp__*oogle_Ads*__*create*",
+      "mcp__*oogle_ads*__*update*",
+      "mcp__*oogle_Ads*__*update*",
+      "mcp__*oogle_ads*__*mutate*",
+      "mcp__*oogle_Ads*__*mutate*",
+      "mcp__*oogle_ads*__*delete*",
+      "mcp__*oogle_Ads*__*delete*",
+      "mcp__*oogle_ads*__*remove*",
+      "mcp__*oogle_Ads*__*remove*",
+      "mcp__*oogle_ads*__*pause*",
+      "mcp__*oogle_Ads*__*pause*",
+      "mcp__*oogle_ads*__*enable*",
+      "mcp__*oogle_Ads*__*enable*",
+      "mcp__*oogle_ads*__*activate*",
+      "mcp__*oogle_Ads*__*activate*",
+      "mcp__*oogle_ads*__*upload*",
+      "mcp__*oogle_Ads*__*upload*",
+      "mcp__*oogle_ads*__*edit*",
+      "mcp__*oogle_Ads*__*edit*",
+      "mcp__*oogle_ads*__*apply*",
+      "mcp__*oogle_Ads*__*apply*"
     ]
   }
 }

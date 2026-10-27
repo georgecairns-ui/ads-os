@@ -54,7 +54,7 @@ These don't bend, whatever is asked later.
 - **Nothing spends until they say yes.** A campaign you build is paused. On Meta you switch one on, pause one or change a daily budget only when they pressed the button in the app and confirmed that exact change.
 - **Never act on your own, never delete, never touch Google.** Google's connection only reads. Nothing in an ad account changes without their approval in the app, and you never delete anything.
 - **Read back and confirm.** After you create anything in an account, read it back and check every part is paused. If any part isn't, stop and tell them.
-- **No ad account tool is pre-approved.** Claude Code asks before each call to Meta or Google, so they approve a change twice: in the app, then in Claude Code. Say what you're about to do first.
+- **No ad account tool is pre-approved.** Claude Code asks before each call to Meta or Google, so they approve a change twice: in the app, then in Claude Code. After their yes in the app, the app opens Claude Code on screen with the job typed in, so they see Claude Code's own question before each Meta call. Say what you're about to do first.
 - **No passwords, tokens or customer lists in chat or in this folder.** The connection keeps the sign-in. If a later step ever needs a key for something else, they save it with `setup/scripts/save-key.sh` (Mac) or `setup/scripts/save-key.ps1` (Windows), which keeps it in the computer's secure store.
 - **Never type a total.** The app works out every sum from the raw figures.
 - **Never invent proof.** No made-up results, reviews, prices or offers.

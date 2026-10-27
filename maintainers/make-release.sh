@@ -36,9 +36,11 @@ found() {
 }
 
 # ---------- 0. The model's own tests, if they're there ----------
-if [ -f "$ROOT/maintainers/test-model.js" ]; then
-  node "$ROOT/maintainers/test-model.js" >/dev/null || fail "node maintainers/test-model.js failed. Run it to see why"
-fi
+for t in test-model test-approvals; do
+  if [ -f "$ROOT/maintainers/$t.js" ]; then
+    node "$ROOT/maintainers/$t.js" >/dev/null || fail "node maintainers/$t.js failed. Run it to see why"
+  fi
+done
 
 # ---------- 1. Is everything that ships still a blank template? ----------
 python3 - "$ROOT" <<'PYEOF' || fail "the files above contain real data. Restore them with: git checkout -- apps/ads/data context setup/progress.md CLAUDE.md
@@ -78,6 +80,11 @@ if data != EMPTY:
     for key in sorted(set(data) | set(EMPTY)):
         if data.get(key) != EMPTY.get(key):
             problems.append(f"apps/ads/data/ads.json: '{key}' is not the blank template")
+
+# The owner's confirmations ship empty: no one's yes can ever come with the kit
+approvals = json.loads((root / "apps/ads/data/approvals.json").read_text())
+if approvals != {"version": 1, "approvals": []}:
+    problems.append("apps/ads/data/approvals.json is not the empty file: it must hold no confirmations")
 
 # No demo mode and no sample data ship
 for f in list((root / "apps").rglob("*.js")) + list((root / "apps").rglob("*.html")) + list((root / "apps").rglob("menu.json")):
@@ -124,6 +131,15 @@ if re.search(r"^- \[[xX]\]", (root / "setup/progress.md").read_text(), re.M):
 perms = json.loads((root / ".claude/settings.json").read_text()).get("permissions", {}).get("allow", [])
 if any(re.search(r"send|delete|trash|post|forward|reply|publish|schedule", p, re.I) and p.startswith("mcp__") for p in perms):
     problems.append(".claude/settings.json pre-approves a tool that sends, deletes or posts")
+# Claude can't write the owner's confirmations without asking: only ads.json and the media folder are pre-approved to write
+for p in perms:
+    if re.match(r"(Write|Edit)\(\./apps/ads/data", p) and p not in ("Write(./apps/ads/data/ads.json)", "Edit(./apps/ads/data/ads.json)", "Write(./apps/ads/data/media/**)", "Edit(./apps/ads/data/media/**)"):
+        problems.append(f".claude/settings.json pre-approves writing more than ads.json and media in apps/ads/data: {p}")
+if not any(p == "Write(./apps/ads/data/ads.json)" for p in perms):
+    problems.append(".claude/settings.json no longer lets Claude write apps/ads/data/ads.json")
+deny = json.loads((root / ".claude/settings.json").read_text()).get("permissions", {}).get("deny", [])
+if not any("oogle_ads" in p and "create" in p for p in deny) or not any("eta_ads" in p and "delete" in p for p in deny):
+    problems.append(".claude/settings.json has lost its deny list for Google Ads write tools and Meta delete tools")
 # No ad account tool is pre-approved at all, so Claude Code asks before every Meta or Google call
 if any(p.startswith("mcp__") or re.search(r"meta|facebook|google[-_ ]?ads|adsmanager|ads_", p, re.I) for p in perms):
     problems.append(".claude/settings.json pre-approves an ad account tool: none may be")
@@ -157,10 +173,10 @@ rsync -a \
 find "$OUT" -mindepth 2 -type d -name .claude -empty -prune -exec rm -rf {} +
 
 # ---------- 3. Checks ----------
-for f in "START-HERE.md" "CLAUDE.md" "LICENSE" "README.md" "Open Ads OS.html" "apps/ads/index.html" "apps/ads/data/ads.json" "apps/ads/menu.json" "apps/ads/home-boxes.js" "apps/ads/claude-jobs.json" "apps/ads/CLAUDE.md" "apps/ads/ATTACH-CLAUDE.md" "apps/ads/app/app.js" "apps/ads/app/app.css" "apps/ads/app/views.css" "apps/ads/app/model.js" "apps/ads/app/report.js" "apps/ads/app/components.js" "apps/ads/app/charts.js" "apps/ads/app/drawer.js" "apps/ads/app/media.js" "apps/ads/app/settings.js" "apps/ads/app/view-overview.js" "apps/ads/app/view-campaigns.js" "apps/ads/app/view-builds.js" "apps/ads/app/view-week.js" "apps/ads/app/view-health.js" "context/ads.md" "setup/progress.md" "setup/05-get-to-know-the-business.md" "setup/ads-01-install-claude-ads.md" "setup/ads-02-where-your-ads-are.md" "setup/ads-03-your-customer.md" "setup/ads-04-budget-and-results.md" "setup/ads-05-first-look.md" "setup/09-check-and-hand-over.md" "setup/scripts/install-claude-ads.sh" "setup/scripts/install-claude-ads.ps1" "setup/connections/meta-ads.md" "setup/connections/google-ads.md" "files/04-marketing/ads/README.md" "files/04-marketing/ads/exports/README.md" "skills-to-upload/README.md" ".claude/skills/README.md" ".claude/settings.json" ".claude/skills/build-a-campaign/references/campaign-basics.md" ".claude/skills/build-in-account/references/connections.md" ".claude/skills/build-in-account/references/google-ads-editor.md" ".claude/skills/update-my-ads/references/exports.md" "setup/scripts/save-key.sh" "setup/scripts/start-task-list.sh" "apps/server/server.js" "apps/server/server.py" "setup/connections/README.md" "toolkit.json" "ATTACHING.md" "apps/installed.json" "apps/shared/catalogue.json" "apps/shared/VERSION" "apps/shared/sidebar.css" "apps/shared/js/sidebar.js" "apps/shared/js/theme.js" "apps/shared/js/braindump.js" ".claude/skills/sort-brain-dump/SKILL.md" "apps/shared/images/claude-icon.png" "apps/home/index.html" "apps/home/home.js" "apps/home/home.css" "apps/shared/fonts/Figtree-Variable.woff2" "docs/CUSTOMISING.md" "docs/PRIVACY-AND-SAFETY.md"; do
+for f in "START-HERE.md" "CLAUDE.md" "LICENSE" "README.md" "Open Ads OS.html" "apps/ads/index.html" "apps/ads/data/ads.json" "apps/ads/data/approvals.json" "apps/ads/menu.json" "apps/ads/home-boxes.js" "apps/ads/claude-jobs.json" "apps/ads/CLAUDE.md" "apps/ads/ATTACH-CLAUDE.md" "apps/ads/app/app.js" "apps/ads/app/app.css" "apps/ads/app/views.css" "apps/ads/app/model.js" "apps/ads/app/report.js" "apps/ads/app/components.js" "apps/ads/app/charts.js" "apps/ads/app/drawer.js" "apps/ads/app/media.js" "apps/ads/app/settings.js" "apps/ads/app/view-overview.js" "apps/ads/app/view-campaigns.js" "apps/ads/app/view-builds.js" "apps/ads/app/view-week.js" "apps/ads/app/view-health.js" "context/ads.md" "setup/progress.md" "setup/05-get-to-know-the-business.md" "setup/ads-01-install-claude-ads.md" "setup/ads-02-where-your-ads-are.md" "setup/ads-03-your-customer.md" "setup/ads-04-budget-and-results.md" "setup/ads-05-first-look.md" "setup/09-check-and-hand-over.md" "setup/scripts/install-claude-ads.sh" "setup/scripts/install-claude-ads.ps1" "setup/connections/meta-ads.md" "setup/connections/google-ads.md" "files/04-marketing/ads/README.md" "files/04-marketing/ads/exports/README.md" "skills-to-upload/README.md" ".claude/skills/README.md" ".claude/settings.json" ".claude/skills/build-a-campaign/references/campaign-basics.md" ".claude/skills/build-in-account/references/connections.md" ".claude/skills/build-in-account/references/google-ads-editor.md" ".claude/skills/update-my-ads/references/exports.md" "setup/scripts/save-key.sh" "setup/scripts/start-task-list.sh" "apps/server/server.js" "apps/server/server.py" "setup/connections/README.md" "toolkit.json" "ATTACHING.md" "apps/installed.json" "apps/shared/catalogue.json" "apps/shared/VERSION" "apps/shared/sidebar.css" "apps/shared/js/sidebar.js" "apps/shared/js/theme.js" "apps/shared/js/braindump.js" ".claude/skills/sort-brain-dump/SKILL.md" "apps/shared/images/claude-icon.png" "apps/home/index.html" "apps/home/home.js" "apps/home/home.css" "apps/shared/fonts/Figtree-Variable.woff2" "docs/CUSTOMISING.md" "docs/PRIVACY-AND-SAFETY.md"; do
   [ -e "$OUT/$f" ] || fail "missing $f"
 done
-for f in apps/ads/data/ads.json apps/ads/menu.json apps/ads/claude-jobs.json toolkit.json apps/installed.json apps/shared/catalogue.json .claude/settings.json; do
+for f in apps/ads/data/ads.json apps/ads/data/approvals.json apps/ads/menu.json apps/ads/claude-jobs.json toolkit.json apps/installed.json apps/shared/catalogue.json .claude/settings.json; do
   python3 -c 'import json,sys; json.load(open(sys.argv[1]))' "$OUT/$f" || fail "$f is not valid"
 done
 # A fresh download lists only Ads OS, and no test tool ever ships
@@ -175,9 +191,9 @@ d = json.load(open(sys.argv[1]))
 entries = d["tools"] if "tools" in d else [d]
 for t in entries:
     if t.get("id") == "ads":
-        sys.exit(0 if "apps/ads/data/ads.json" in (t.get("dataFiles") or []) else 1)
+        sys.exit(0 if all(x in (t.get("dataFiles") or []) for x in ("apps/ads/data/ads.json", "apps/ads/data/approvals.json")) else 1)
 sys.exit(1)
-' "$OUT/$f" || fail "$f must list apps/ads/data/ads.json"
+' "$OUT/$f" || fail "$f must list apps/ads/data/ads.json and apps/ads/data/approvals.json (the helper saves only listed files)"
 done
 # Photos and videos need the helper told this tool keeps them, in both places that track it
 for f in apps/installed.json toolkit.json; do
@@ -209,12 +225,13 @@ for b in bad:
     print("  - " + b, file=sys.stderr)
 sys.exit(1 if bad else 0)
 PYEOF
-# The 9 jobs the app can ask for must each point at a skill that exists (send-to-task-list points at ATTACH-CLAUDE.md)
-python3 - "$OUT" <<'PYEOF' || fail "apps/ads/claude-jobs.json must have exactly update-my-ads, build-a-campaign, write-campaign, build-in-account, analyse-campaign, make-account-change, how-did-the-ads-do, what-should-i-change and send-to-task-list, each pointing at a skill (send-to-task-list at ATTACH-CLAUDE.md) and each ending with the closing line"
+# The 8 background jobs the app can ask for must each point at a skill that exists (send-to-task-list points at ATTACH-CLAUDE.md)
+python3 - "$OUT" <<'PYEOF' || fail "apps/ads/claude-jobs.json must have exactly update-my-ads, build-a-campaign, write-campaign, build-in-account, analyse-campaign, how-did-the-ads-do, what-should-i-change and send-to-task-list, each pointing at a skill (send-to-task-list at ATTACH-CLAUDE.md) and each ending with the closing line"
 import json, sys, pathlib
 out = pathlib.Path(sys.argv[1])
 jobs = json.load(open(out / "apps/ads/claude-jobs.json"))["jobs"]
-ok = sorted(jobs) == ["analyse-campaign", "build-a-campaign", "build-in-account", "how-did-the-ads-do", "make-account-change", "send-to-task-list", "update-my-ads", "what-should-i-change", "write-campaign"]
+ok = sorted(jobs) == ["analyse-campaign", "build-a-campaign", "build-in-account", "how-did-the-ads-do", "send-to-task-list", "update-my-ads", "what-should-i-change", "write-campaign"]
+ok = ok and "make-account-change" not in jobs   # an account change runs only on screen in Claude Code, never as an unwatched background job
 CLOSING = "Change only what the person approved in the app, and nothing else."
 # A job's skill is the one its prompt names (write-campaign uses build-a-campaign)
 skill_of = lambda n: "build-a-campaign" if n == "write-campaign" else n

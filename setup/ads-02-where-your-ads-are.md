@@ -31,7 +31,7 @@ For each connection they made, follow `.claude/skills/build-in-account/reference
 
 Save in `apps/ads/data/ads.json`, for each platform: `how` (`connected`, `export` or `none`), `accountName`, and `connectedAt` (now) for a connection. Don't write `lastRefresh` yet: the first look does.
 
-Say once: "Claude Code also asks you before every call to your ad account, so you approve twice for any change: in the app, then here."
+Say once: "Claude Code also asks you before every call to your ad account, so you approve twice for any change: in the app, then here. After you press Yes in the app, it opens Claude on screen with the job typed in, and Claude asks before each step."
 
 Record each connection in `context/tools.md` as `.claude/skills/connect-a-tool` says: what Claude may do (read; for Meta, create campaigns that are paused, and make one change you approved in the app: switch on, pause or change a daily budget) and what it never does (act on its own, go over your limits, delete, or change anything on Google).
 
