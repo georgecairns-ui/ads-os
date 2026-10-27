@@ -8,7 +8,7 @@ Most business owners with ads can't tell what a new enquiry costs, or which camp
 
 On Meta, Claude switches a campaign on, pauses a campaign or an ad, or changes a daily budget only when you press the button in the app and confirm that exact change in the pop-up. The pop-up says the change in one sentence and shows whether it fits your limits. Claude does that one change, reads it back and tells you what it found. Claude never acts on its own, never goes over your limits and never deletes anything.
 
-Google's own connection only reads, so Claude never changes anything on Google Ads. Google changes stay with you, with a link to Google Ads and a step-by-step task. Claude Code also asks you before it touches your Meta or Google account at all, so you approve a Meta change twice: in the app, then in Claude Code.
+Google's own connection only reads, so Claude never changes anything on Google Ads. Google changes stay with you, with a link to Google Ads and a step-by-step task. Claude Code also asks you before it touches your Meta or Google account at all, so you approve a Meta change twice: in the app, then in Claude Code. The app opens Claude on screen for the second step, so you watch it happen.
 
 Ads OS is part of a toolkit of 7 free tools from Get AI Powers. The others (a task list, Pipeline OS, proposals and more) show in the app's menu, and Get AI Powers sets them up with you on a free call.
 

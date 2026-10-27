@@ -722,7 +722,7 @@ check("normalise: the round 2 fields are cleaned up", function () {
   assert.deepStrictEqual(d.builds[0].brief, { audience: "change", audienceNote: "", budget: "same", daily: null, start: "2026-11-03", end: null, words: "keep", note: "" });
   assert.strictEqual(d.analyses.length, 1); assert.deepStrictEqual(d.analyses[0].working, ["a"]); assert.deepStrictEqual(d.analyses[0].wasting, []);
   assert.deepStrictEqual(d.actions.map(function (a) { return a.id; }), ["x1", "x3"]);
-  assert.strictEqual(d.actions[0].status, "requested"); assert.strictEqual(d.actions[0].budgetTo, null); assert.strictEqual(d.actions[1].doneAt, "t"); assert.strictEqual(d.actions[0].platform, "meta");
+  assert.strictEqual(d.actions[0].status, "failed"); assert.strictEqual(d.actions[0].note, "unclear entry, not acted on"); assert.strictEqual(d.actions[0].budgetTo, null); assert.strictEqual(d.actions[1].doneAt, "t"); assert.strictEqual(d.actions[0].platform, "meta");
 });
 
 check("report.js campaign and action print the app's numbers from a fixture file", function () {

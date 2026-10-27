@@ -10,6 +10,7 @@ Run these first, from the repo root. They need Node only and touch nothing:
 
 ```bash
 node maintainers/test-model.js
+node maintainers/test-approvals.js
 ```
 
 It runs plain assertions on `apps/ads/app/model.js`, and on the output of `apps/ads/app/report.js` against a fixture. It must print no failures. `make-release.sh` runs it too. If you change a rule in `model.js`, change the test in the same commit.
@@ -97,7 +98,7 @@ Run the app (`node apps/server/server.js` or `python3 apps/server/server.py`), o
 - **Phone width 320 and 375**: the sidebar opens from the menu button; nothing scrolls sideways on any page; the drawer is usable by touch.
 - **Reduced motion**: with the OS setting on, nothing animates.
 
-## 6. The 9 jobs, with a stand-in `claude`
+## 6. The 8 background jobs, with a stand-in `claude`
 
 Point `TLOS_CLAUDE` at a stand-in script that follows the job prompts without using real Claude (see Task List OS's own stand-in for the pattern). For each job, trigger it from the app and check:
 
@@ -107,7 +108,7 @@ Point `TLOS_CLAUDE` at a stand-in script that follows the job prompts without us
 - **`build-in-account`**: with a stand-in that records every call it makes: only create calls, each with status paused, then read calls; never an activate, update, pause, re-budget or delete call; `refs` filled, `status: "in-account"`, `builtAt` set. With the stand-in made to return one object as active on read-back: it stops, makes no further call, sets the build back to `approved`, and says so. A build with `refs.campaignId` already set is refused. A failing budget or seasonal guard is refused and changes nothing. On Google: the CSV has every status Paused and every headline within 30 characters and every description within 90, and the build sheet exists.
 - **`send-to-task-list`**: only runs when `apps/installed.json` lists `task-list`, after Approve on a suggestion and after a successful `build-in-account`. It writes a suggested task for each approved suggestion and each `in-account` or `ready-to-import` build with no `taskId`, records the ids, and sends nothing twice. Without Task List OS the app never asks for it.
 - **`analyse-campaign`**: for a campaign with `request.kind = "analyse"`, adds one `analyses` entry at the front (words only, every number in it in `report.js campaign <id>`), sets a `prediction` with assumptions only when the campaign has none (`basis: "analysis"`, `from` today) and never overwrites an existing one, adds up to 3 suggestions, clears `request`, and makes no ad account call that changes anything.
-- **`make-account-change`**: with a stand-in that records every call it makes. For a `requested` Meta `switch-on`, `pause` and `budget` action each: runs `report.js action <id>` first; makes exactly 1 changing call; reads back; sets `doing`, then `done` with `readBack` (for a budget, equal to `budgetTo`) and `doneAt`; updates only that campaign or ad and `activity`. A `switch-on` of a build also sets the build `live` with `switchedOnAt`, copies its prediction to the campaign and sets `buildId`. With the check printing BLOCKED: no changing call, status `failed`, a plain `note`. With the read-back not matching: status `failed` and the note says what it found, with no second changing call. A `google` action, a delete, or a status that isn't `requested`: no call at all. Two requested actions: each handled once, in order.
+- **`make-account-change`** is not a background job: `POST /api/claude/run/ads/make-account-change` must answer 404. It runs on screen: after Yes, check approvals.json holds the entry and the Open Claude step shows (link and copy button). With a stand-in that records every call it makes, for a `requested` Meta `switch-on`, `pause` and `budget` action each: runs `report.js action <id>` first; makes exactly 1 changing call; reads back; sets `doing`, then `done` with `readBack` (for a budget, equal to `budgetTo`) and `doneAt`; updates only that campaign or ad and `activity`. A `switch-on` of a build also sets the build `live` with `switchedOnAt`, copies its prediction to the campaign and sets `buildId`. With the check printing BLOCKED: no changing call, status `failed`, a plain `note`. With the read-back not matching: status `failed` and the note says what it found, with no second changing call. A `google` action, a delete, or a status that isn't `requested`: no call at all. Two requested actions: each handled once, in order.
 - **`how-did-the-ads-do`**: this week's summary is added or replaced (one per `weekStart`), and every number in it appears in `report.js week`.
 - **`what-should-i-change`**: up to 5 suggestions, none repeating an open one, every number in a `why` in the report, and no suggestion carried out.
 
@@ -152,7 +153,7 @@ Follow `ATTACHING.md` on a scratch copy of Task List OS, then check:
 
 ## 11. Helper: Node and Python behave the same
 
-Run the app once with `node apps/server/server.js` and once with `python3 apps/server/server.py` and repeat the page checks in section 4 for each: saving the data file, the job endpoints for all 9 jobs, and the backup file (`ads.backup.json`) all behave the same in both.
+Run the app once with `node apps/server/server.js` and once with `python3 apps/server/server.py` and repeat the page checks in section 4 for each: saving the data file, the job endpoints for all 8 background jobs, and the backup file (`ads.backup.json`) all behave the same in both.
 
 ## 12. The helper's photo and video routes
 

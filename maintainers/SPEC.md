@@ -380,7 +380,7 @@ This section overrides anything above where they differ. George wants owners to 
 - `actions[]`, the owner-approved account changes:
   - Shape: `{ id, kind: "switch-on"|"pause"|"budget", platform, campaignId, buildId, adId, budgetFrom, budgetTo, status: "requested"|"doing"|"done"|"failed", requestedAt, doneAt, readBack: "", note: "" }`.
   - Only `platform: "meta"`.
-  - The app creates it with status `requested` after the owner confirms the pop-up, then runs the `make-account-change` job.
+  - The app creates it with status `requested` after the owner confirms the pop-up, records the yes in `apps/ads/data/approvals.json` (which ships empty and is listed in `apps/installed.json` and `toolkit.json` `dataFiles`), then opens Claude Code on screen with `make-account-change` typed in. It is no longer a background job. A missing or unknown status is read as `failed`.
   - Claude sets `doing`, then `done` with `readBack` ("Campaign is now ACTIVE, daily budget £15") or `failed` with a plain `note`.
   - A `switch-on` of a build also sets the build `live` and `switchedOnAt` when done.
 - `builds[].fromCampaignId` and `builds[].brief`. `brief` is `{ audience: "same"|"change", audienceNote, budget: "same"|"change", daily, start, end, words: "keep"|"fresh"|"mix", note }`, filled by the Run campaign questions.
@@ -445,7 +445,7 @@ This section overrides anything above where they differ. George wants owners to 
 | job | label | skill |
 |---|---|---|
 | `analyse-campaign` | analysing your campaign | `.claude/skills/analyse-campaign` for campaigns with `request.kind = "analyse"` |
-| `make-account-change` | making the change you approved | `.claude/skills/make-account-change` for `actions` with status `requested` |
+| ~~`make-account-change`~~ | (removed from the background jobs: it runs on screen in Claude Code after the owner's yes) | |
 
 Each prompt still ends with a closing line, now: "Change only what the person approved in the app, and nothing else."
 
@@ -455,8 +455,8 @@ Each prompt still ends with a closing line, now: "Change only what the person ap
   - Reads the campaign's figures through `report.js campaign <id>` (new command: totals, weekly figures, light, prediction score).
   - Uses claude-ads `ads-audit` or `ads-meta`/`ads-google` scoped to that campaign when installed.
   - Writes an analysis, sets a prediction if none (with `ads-math`, assumptions listed), and adds up to 3 suggestions. Never changes the account.
-- `make-account-change`: for each `requested` action:
-  - Runs `report.js action <id>` (new command, prints `actionChecks`, OK or BLOCKED) and refuses if blocked.
+- `make-account-change`: for each `requested` action with a matching confirmation in `approvals.json`:
+  - Runs `report.js action <id>` (new command, prints `actionChecks` and whether the owner's confirmation matches, OK or BLOCKED) and refuses if blocked.
   - Does exactly that one change with the Meta connection's tool for it (to check: tool names), and nothing else.
   - Reads it back and writes `readBack`.
   - Never more than one change per action. Never deletes. Never touches Google.
