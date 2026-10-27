@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """
-TASK LIST OS: the little helper that runs your task list on this computer (Python version)
------------------------------------------------------------------------------------------
+THE HELPER: the little helper that runs this folder's tools on this computer (Python version)
+---------------------------------------------------------------------------------------------
+It calls itself by the folder's name: "name" in toolkit.json (for example "Ads OS").
 The same as server.js, for computers that have Python 3 but not Node. Claude uses whichever
 is available. It serves the task list app at http://localhost:4747 and lets it read and save
 apps/task-list/data/tasks.json, plus the data files of any attached tools listed in apps/installed.json.
@@ -36,6 +37,22 @@ ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
 APPS = os.path.join(ROOT, "apps")
 DATA = os.path.join(APPS, "task-list", "data", "tasks.json")
 INSTALLED = os.path.join(APPS, "installed.json")
+
+
+def read_name():
+    """The folder's name, for messages: toolkit.json's "name", else the first tool's in apps/installed.json."""
+    for read in (lambda: json.load(open(os.path.join(ROOT, "toolkit.json"), encoding="utf-8"))["name"],
+                 lambda: json.load(open(INSTALLED, encoding="utf-8"))["tools"][0]["name"]):
+        try:
+            name = read()
+        except (OSError, ValueError, KeyError, IndexError, TypeError):
+            continue
+        if isinstance(name, str) and name.strip():
+            return name.strip()
+    return "Your toolkit"
+
+
+NAME = read_name()
 # A tool's data file must live in its own data folder: apps/<tool>/data/<name>.json
 HOME_LAYOUT = os.path.join(APPS, "home", "data", "layout.json")
 BRAIN_DUMP = os.path.join(APPS, "home", "data", "braindump.json")  # the shared Brain dump, every tool's notes
@@ -52,7 +69,7 @@ MEDIA_CHUNK = 64 * 1024
 # Asking Claude to do a small job: sort a voice note, update a deal (see server.js for the plain-English explanation)
 AUTO_CLAUDE = os.environ.get("TLOS_AUTO_CLAUDE", "on") != "off"
 _logs = os.path.join(os.path.expanduser("~"), "Library", "Logs")
-CLAUDE_LOG = os.path.join(_logs if os.path.isdir(_logs) else os.environ.get("TMPDIR", "/tmp"), "task-list-os-claude.log")
+CLAUDE_LOG = os.path.join(_logs if os.path.isdir(_logs) else os.environ.get("TMPDIR", "/tmp"), (re.sub(r"[^a-z0-9]+", "-", NAME.lower()).strip("-") or "toolkit") + "-claude.log")
 RUN_LIMIT_S = 10 * 60
 UNWATCHED = " Nobody is watching this run, so do not ask questions: make your best reading of anything unclear and say so in your notes."
 SORT_JOB = {"key": "shared:brain-dump", "label": "sorting the brain dump",
@@ -354,8 +371,8 @@ class Handler(BaseHTTPRequestHandler):
         url = self.path.split("?")[0]
         if url == "/api/alive.js":
             return self.send(200, "window.tlosAlive = true;", TYPES[".js"])
-        if url == "/api/info":  # where this folder is, so "Open in Claude" can start Claude Code right here
-            return self.send_json(200, {"folder": ROOT})
+        if url == "/api/info":  # where this folder is and its name, so "Open in Claude" can start Claude Code right here
+            return self.send_json(200, {"folder": ROOT, "name": NAME})
         if url == "/api/tasks/meta":
             return self.send_json(200, {"modified": modified()})
         if url == "/api/tasks":
@@ -472,7 +489,7 @@ if __name__ == "__main__":
     try:
         httpd = ThreadingHTTPServer((HOST, PORT), Handler)
     except OSError:
-        print("Task List OS: port %d is already in use. It may already be running: open http://localhost:%d" % (PORT, PORT), file=sys.stderr)
+        print("%s: port %d is already in use. It may already be running: open http://localhost:%d" % (NAME, PORT, PORT), file=sys.stderr)
         sys.exit(1)
-    print("Task List OS is running at http://localhost:%d" % PORT)
+    print("%s is running at http://localhost:%d" % (NAME, PORT))
     httpd.serve_forever()

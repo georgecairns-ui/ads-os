@@ -1,7 +1,8 @@
 #!/usr/bin/env node
 /*
-  TASK LIST OS: the little helper that runs your task list on this computer
-  -------------------------------------------------------------------------
+  THE HELPER: the little helper that runs this folder's tools on this computer
+  ----------------------------------------------------------------------------
+  It calls itself by the folder's name: "name" in toolkit.json (for example "Ads OS").
   Claude starts this during setup. It does 2 things:
     1. Serves the task list app at http://localhost:4747 so it opens like any web page.
     2. Lets the app read and save your task file (apps/task-list/data/tasks.json), so there's
@@ -42,10 +43,17 @@ const { pipeline } = require("stream");
 
 const PORT = Number(process.env.TLOS_PORT || 4747);
 const HOST = "127.0.0.1";
-const ROOT = path.resolve(__dirname, "..", "..");           // the Task List OS folder
+const ROOT = path.resolve(__dirname, "..", "..");           // the tool's folder
 const APPS = path.join(ROOT, "apps");                         // the only folder it serves
 const DATA = path.join(APPS, "task-list", "data", "tasks.json");
 const INSTALLED = path.join(APPS, "installed.json");
+// The folder's name, for messages: toolkit.json's "name", else the first tool's in apps/installed.json
+function readName() {
+  try { const n = JSON.parse(fs.readFileSync(path.join(ROOT, "toolkit.json"), "utf8")).name; if (typeof n === "string" && n.trim()) return n.trim(); } catch (e) { /* try installed.json */ }
+  try { const n = JSON.parse(fs.readFileSync(INSTALLED, "utf8")).tools[0].name; if (typeof n === "string" && n.trim()) return n.trim(); } catch (e) { /* no name */ }
+  return "Your toolkit";
+}
+const NAME = readName();
 const HOME_LAYOUT = path.join(APPS, "home", "data", "layout.json");
 const BRAIN_DUMP = path.join(APPS, "home", "data", "braindump.json");   // the shared Brain dump, every tool's notes
 // A tool's data file must live in its own data folder: apps/<tool>/data/<name>.json
@@ -60,7 +68,7 @@ const MAX_MEDIA = 200 * 1024 * 1024;
 
 // ---------- Asking Claude to do a small job (sort a voice note, update a deal) ----------
 const AUTO_CLAUDE = (process.env.TLOS_AUTO_CLAUDE || "on") !== "off";
-const CLAUDE_LOG = path.join(fs.existsSync(path.join(os.homedir(), "Library", "Logs")) ? path.join(os.homedir(), "Library", "Logs") : os.tmpdir(), "task-list-os-claude.log");
+const CLAUDE_LOG = path.join(fs.existsSync(path.join(os.homedir(), "Library", "Logs")) ? path.join(os.homedir(), "Library", "Logs") : os.tmpdir(), (NAME.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "toolkit") + "-claude.log");
 const RUN_LIMIT_MS = 10 * 60 * 1000;
 const UNWATCHED = " Nobody is watching this run, so do not ask questions: make your best reading of anything unclear and say so in your notes.";
 const SORT_JOB = { key: "shared:brain-dump", label: "sorting the brain dump",
@@ -291,9 +299,9 @@ async function handleApi(req, res, url) {
     // Used by "Open Task List.html" to check the helper is running
     return send(res, 200, "window.tlosAlive = true;", TYPES[".js"]);
   }
-  // Where this folder is, so the app can open Claude Code right here ("Open in Claude" on a task)
+  // Where this folder is and its name, so the app can open Claude Code right here ("Open in Claude" on a task)
   if (url === "/api/info" && req.method === "GET") {
-    return sendJson(res, 200, { folder: ROOT });
+    return sendJson(res, 200, { folder: ROOT, name: NAME });
   }
   if (url === "/api/tasks/meta" && req.method === "GET") {
     return sendJson(res, 200, { modified: modified() });
@@ -373,13 +381,13 @@ const server = http.createServer(function (req, res) {
 
 server.on("error", function (err) {
   if (err.code === "EADDRINUSE") {
-    console.error("Task List OS: port " + PORT + " is already in use. It may already be running: open http://localhost:" + PORT);
+    console.error(NAME + ": port " + PORT + " is already in use. It may already be running: open http://localhost:" + PORT);
   } else {
-    console.error("Task List OS: could not start: " + err.message);
+    console.error(NAME + ": could not start: " + err.message);
   }
   process.exit(1);
 });
 
 server.listen(PORT, HOST, function () {
-  console.log("Task List OS is running at http://localhost:" + PORT);
+  console.log(NAME + " is running at http://localhost:" + PORT);
 });
