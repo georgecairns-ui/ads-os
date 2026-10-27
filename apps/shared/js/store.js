@@ -163,9 +163,9 @@
     }
     async function helperRead() {
       let r;
-      try { r = await fetch(opts.api, { cache: "no-store" }); } catch (e) { throw StoreError("helper-stopped", "The task list helper isn't running.", e); }
+      try { r = await fetch(opts.api, { cache: "no-store" }); } catch (e) { throw StoreError("helper-stopped", "The helper on this computer isn't running.", e); }
       if (r.status === 404) throw StoreError("missing", "The data file could not be found.");
-      if (!r.ok) throw StoreError("helper-stopped", "The task list helper didn't answer.");
+      if (!r.ok) throw StoreError("helper-stopped", "The helper on this computer didn't answer.");
       const text = await r.text();
       let data;
       try { data = JSON.parse(text); if (opts.validate) opts.validate(data); } catch (e) { throw StoreError("bad-file", "The data file has a mistake in it, so it could not be read.", e); }
@@ -175,16 +175,21 @@
       let r;
       try {
         r = await fetch(opts.api, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) });
-      } catch (e) { throw StoreError("helper-stopped", "The task list helper isn't running.", e); }
+      } catch (e) { throw StoreError("helper-stopped", "The helper on this computer isn't running.", e); }
       if (!r.ok) throw StoreError("save-failed", "Your change could not be saved.");
       return (await r.json()).modified;
     }
+    // The folder's name, from the helper (toolkit.json's "name", for example "Ads OS")
+    async function helperName() {
+      try { const r = await fetch("/api/info", { cache: "no-store" }); return r.ok ? (await r.json()).name : undefined; } catch (e) { return undefined; }   // only a label: reading the data reports a stopped helper
+    }
     async function openHelper() {
+      state.helperName = state.helperName || await helperName();
       const result = await helperRead();
       state.mode = "helper";
       state.data = result.data;
       state.lastModified = result.lastModified;
-      setStatus("ready", { folderName: "Task List OS", helper: true });
+      setStatus("ready", { folderName: state.helperName, helper: true });
       opts.onData(state.data, "load");
       startWatching();
     }
@@ -226,20 +231,20 @@
     async function checkHelper() {
       try {
         const r = await fetch(opts.api + "/meta", { cache: "no-store" });
-        if (!r.ok) throw StoreError("helper-stopped", "The task list helper didn't answer.");
+        if (!r.ok) throw StoreError("helper-stopped", "The helper on this computer didn't answer.");
         const meta = await r.json();
         if (meta.modified === state.lastModified) {
-          if (state.lastStatus === "error") setStatus("ready", { folderName: "Task List OS", helper: true });
+          if (state.lastStatus === "error") setStatus("ready", { folderName: state.helperName, helper: true });
           return;
         }
         const result = await helperRead();
         state.data = result.data;
         state.lastModified = result.lastModified;
-        setStatus("ready", { folderName: "Task List OS", helper: true });
+        setStatus("ready", { folderName: state.helperName, helper: true });
         opts.onData(state.data, "external");
       } catch (e) {
-        const err = e.kind ? e : StoreError("helper-stopped", "The task list helper isn't running.", e);
-        setStatus("error", { error: err, folderName: "Task List OS", helper: true });
+        const err = e.kind ? e : StoreError("helper-stopped", "The helper on this computer isn't running.", e);
+        setStatus("error", { error: err, folderName: state.helperName, helper: true });
       }
     }
 
@@ -248,7 +253,7 @@
       setStatus("checking");
       // Opened from the helper's link: everything just works, no folder to pick
       if (await helperAvailable()) {
-        try { return await openHelper(); } catch (e) { return setStatus("error", { error: e, folderName: "Task List OS", helper: true }); }
+        try { return await openHelper(); } catch (e) { return setStatus("error", { error: e, folderName: state.helperName, helper: true }); }
       }
       // Opened as a file without the helper running: ask Claude to start it
       if (location.protocol === "file:" && opts.api) return setStatus("needs-helper");
@@ -311,12 +316,12 @@
             change(data);
             state.lastModified = await helperWrite(data);
             state.data = data;
-            setStatus("ready", { folderName: "Task List OS", helper: true, savedAt: new Date() });
+            setStatus("ready", { folderName: state.helperName, helper: true, savedAt: new Date() });
             opts.onData(state.data, "save");
             return data;
           } catch (e) {
             const err = e.kind ? e : StoreError("save-failed", "Your change could not be saved.", e);
-            setStatus("error", { error: err, folderName: "Task List OS", helper: true });
+            setStatus("error", { error: err, folderName: state.helperName, helper: true });
             throw err;
           } finally {
             state.busy = false;
