@@ -176,6 +176,8 @@ for f in sorted(root.rglob("*")):
         continue
     txt = f.read_text(errors="ignore")
     rel = str(f.relative_to(root))
+    if "archive/refs/heads" in txt or "raw.githubusercontent.com" in txt:
+        problems.append(f"{rel} uses an old public download address: since shared version 12 every download uses the person's GitHub sign-in (gh)")
     for old in ("open-task-list", "start-task-list"):
         if old in txt:
             problems.append(f"{rel} uses the old name {old} (it is now open-the-app / start-app, the same in every tool)")
