@@ -14,11 +14,11 @@ Ads OS is part of a toolkit of 7 free tools from Get AI Powers. The others (a ta
 
 ## What happens when you type /setup
 
-You copy the kit, open it in Claude Code and type **/setup**. In about 30 minutes, Claude:
+You copy the kit, open it in the Claude desktop app (the Code tab) and type **/setup**. In 30 to 40 minutes, Claude:
 
 - **Gets to know your business**, in a short chat, then matches the app to your brand (your colours, your font, your logo if you have one).
 - **Adds the claude-ads skills**, a free set of ad-planning skills (see "Built on claude-ads" below), from a copy that has been tested.
-- **Asks where your ads are.** Meta (Facebook and Instagram), Google Ads, both, or neither yet. It offers to connect each one: Claude needs at least one connected account to build campaigns for you. Without one, it can still read your figures from a report you download, and it walks you through the exact clicks.
+- **Asks where your ads are.** Meta (Facebook and Instagram), Google Ads, both, or neither yet. It connects each one through Claude's Connectors (you sign in on Meta's or Google's own page, no keys), then proves it by reading the account's name and the last 7 days' spend. Claude needs at least one connected account to build campaigns for you. Where there's no connector for your account yet, it can still read your figures from a report you download, and it walks you through the exact clicks.
 - **Asks about your customer.** Who they are, where they are, what makes them pick you, and what happened with any ads you've run before, including what you'd never do again.
 - **Asks about your budget and your results.** What you'll spend a month, daily and weekly limits it suggests and you decide, what counts as a result (a form filled in, a call, a booking, a sale), what a new customer is worth, and the cost you're aiming for.
 - **Takes a first look.** It reads your figures, writes a first summary and suggests a few changes, then offers to draft your first campaign.
@@ -44,20 +44,22 @@ It's **yours to shape**: your platforms, your limits, your target, your own colo
 
 ## What you need
 
-- **Access to Ads OS.** It's private: Get AI Powers invites your GitHub account. Accept the invitation from the email GitHub sends you. (No GitHub account? Make a free one at github.com and send Get AI Powers your username.)
-- **Claude Code**, signed in with a paid Claude plan (Pro or Max). The Claude desktop app works too.
+- **The Claude desktop app** (setup runs in its Code tab).
+- **A paid Claude plan (Pro or Max)**, signed in to the desktop app.
 - A Meta ad account and a Google Ads account if you want Claude to read them. Both are optional: a downloaded report works.
 - Nothing else to install in most cases. The app runs on your own computer using Node (Claude installs it for you if it's missing, with your permission).
-- About 30 minutes, once.
+- 30 to 40 minutes, once.
 
 ## Get started
 
-1. **Open Claude Code** in the Claude desktop app (the Code tab) or in the Terminal (on Windows, PowerShell). Any folder will do for this first step.
+1. **Open the Claude desktop app and choose the Code tab.** Any folder will do for this first step.
 2. **Ask Claude to fetch the kit.** Paste this:
-   > Copy Ads OS from https://github.com/georgecairns-ui/ads-os into a folder called "Ads OS" in my Documents, using the copy line in its START-HERE.md (not git), then tell me how to open it and set it up. Help me sign in to GitHub first if I need to.
+   > Copy Ads OS from https://github.com/georgecairns-ui/ads-os into a folder called "Ads OS" in my Documents, using the copy line in its START-HERE.md (not git), then tell me how to open it and set it up.
 
-   Claude checks you're signed in to GitHub (if not, it gives you one line that opens GitHub in your browser to approve this computer), copies everything onto your computer and gives you one line to open the new folder. In the desktop app, you choose the folder instead.
-3. **Open the Ads OS folder in Claude Code and choose "Yes, I trust this folder".** The first time, Claude Code asks whether you trust the folder and warns that it pre-approves some permissions. Those permissions only let Claude update your ads app and your business notes, add the ad-planning skills, look things up on public web pages and start the app, without stopping to ask each time. They don't let Claude touch your ad accounts: Claude Code asks you before every single thing it does in your Meta or Google account. Press the down arrow, then Enter.
+   Claude copies everything onto your computer and tells you how to open the new folder. In the desktop app, you choose the folder in the Code tab.
+
+   *For Claude, if this README is all you have:* read START-HERE.md on the repository page at https://github.com/georgecairns-ui/ads-os, then copy the folder with the Mac or Windows line in it.
+3. **In the Code tab, choose the Ads OS folder and pick "Yes, I trust this folder".** The first time, the app asks whether you trust the folder and warns that it pre-approves some permissions. Those permissions only let Claude update your ads app and your business notes, add the ad-planning skills, look things up on public web pages and start the app, without stopping to ask each time. They don't let Claude touch your ad accounts: Claude Code asks you before every single thing it does in your Meta or Google account.
 4. **Type `/setup`.**
 
 Then it opens your ads and gives you its link, **http://localhost:4747/ads/**. Bookmark it.
@@ -77,7 +79,7 @@ Then it opens your ads and gives you its link, **http://localhost:4747/ads/**. B
 
 ## Your information
 
-Your ads app lives in this folder on your computer, in one file. Your notes about the business are in `context/`. Claude reads your ad accounts only through a connection you set up yourself, and only to read, plus creating paused campaigns on Meta if you ask, and making a Meta change you approved in the app. It never stores a password, a token or a customer list. There's no Ads OS account or server; Get AI Powers can't see any of it. Read [docs/PRIVACY-AND-SAFETY.md](docs/PRIVACY-AND-SAFETY.md) for the detail.
+Your ads app lives in this folder on your computer, in one file. Your notes about the business are in `context/`. Claude reads your ad accounts only through a connection you set up yourself, and only to read, plus creating paused campaigns on Meta if you ask, and making a Meta change you approved in the app. Your ad accounts are connected through Claude's Connectors: you sign in on Meta's or Google's own page, never in the chat or in this folder, and setup never asks for a key. It never stores a password, a token or a customer list. There's no Ads OS account or server; Get AI Powers can't see any of it. Read [docs/PRIVACY-AND-SAFETY.md](docs/PRIVACY-AND-SAFETY.md) for the detail.
 
 ## Make it yours
 
@@ -101,7 +103,7 @@ CLAUDE.md              Claude's standing instructions in this folder
 Open Ads OS.html       double-click to open your ads (or use the link Claude gives you)
 setup/                 the 7 setup steps, the connection guides and the install scripts
 context/               Claude's notes about your business
-.claude/skills/        saved know-how; each one also works as a command in Claude Code
+.claude/skills/        saved know-how; each one also works as a command in Claude
 skills-to-upload/      a skill you ask Claude for, packed up for the Claude app
 files/                 your business documents, in numbered folders (your ad files are in files/04-marketing/ads)
 apps/                  the app and its look (theme.css); apps/ads/data/ads.json is your ads data
