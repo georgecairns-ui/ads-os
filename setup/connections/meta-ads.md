@@ -44,6 +44,8 @@ Ask permission, then read only the ad account's name and its spend over the last
 
 Pre-approve for check-ins: none. No Meta Ads tool is pre-approved, not even a read tool, in `.claude/settings.json` or `.claude/settings.local.json`: Claude Code asks before each call. Nothing that creates, edits, pauses, switches on, changes a budget or spends is ever pre-approved.
 
+Ads OS has no check-in setup and nothing here is pre-approved. After a Fix it, ignore the pre-approval check in connect-a-tool: there are no read tools to restore, so never add a Meta Ads or Google Ads tool to .claude/settings.json or .claude/settings.local.json, and never offer to.
+
 ## Record
 
 `apps/home/data/connections.json`, key `meta-ads`: name "Meta Ads", status `connected`, how "Meta's own connection (beta)", checked today, note "Read campaigns, ads and figures; create paused campaigns; one change the owner approved in the app. Never act on its own, go over the limits or delete anything."

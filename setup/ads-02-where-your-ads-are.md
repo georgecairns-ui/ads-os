@@ -49,6 +49,6 @@ Use the same report for a platform they chose not to connect yet.
 
 ## 6. If it still won't connect
 
-If a platform's connector is there but still won't connect after the loop in `connect-a-tool`, say what went wrong in one plain line and record its row as `needs-attention`, with what went wrong in `note`. The Connections box on Home shows a **Fix it** button for it. Offer the report for that platform (part 4) in the meantime, so the first look has figures. Never ask for a password or a token in chat.
+If a platform's connector is there but still won't connect after the loop in `connect-a-tool`, say what went wrong in one plain line and record its row as `needs-attention`, with what went wrong in `note`. The Connections box on Home shows a **Fix it** button for it. Fix it only reconnects. It never pre-approves anything. Offer the report for that platform (part 4) in the meantime, so the first look has figures. Never ask for a password or a token in chat.
 
 Tick this step in `setup/progress.md`, with a one-line note of each platform's status (for example "Meta connected, Google export-only").
