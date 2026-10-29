@@ -11,9 +11,10 @@ Run these first, from the repo root. They need Node only and touch nothing:
 ```bash
 node maintainers/test-model.js
 node maintainers/test-approvals.js
+node maintainers/test-connections.js
 ```
 
-It runs plain assertions on `apps/ads/app/model.js`, and on the output of `apps/ads/app/report.js` against a fixture. It must print no failures. `make-release.sh` runs it too. If you change a rule in `model.js`, change the test in the same commit.
+`test-connections.js` checks the shared Connections model (`apps/shared/js/connections.js`, shared version 13). The other 2 run plain assertions on `apps/ads/app/model.js`, and on the output of `apps/ads/app/report.js` against a fixture. It must print no failures. `make-release.sh` runs it too. If you change a rule in `model.js`, change the test in the same commit.
 
 What the tests must cover, so a future change can't quietly break a rule:
 
@@ -133,7 +134,7 @@ On a fresh unzip, run `/setup` as if you were the customer's Claude, with a made
 
 - It asks one question at a time and saves as it goes (look at `context/ads.md` and the data file between questions).
 - Step 2 (claude-ads) runs the install script, says what it printed, and carries on if it fails, using `campaign-basics.md`.
-- Step 3 asks which platforms, offers each connection as skippable, says "Claude needs at least one connected account to build campaigns for you. Without one, it can still read your figures from a report you download", tests each connection with one read (the name and the campaigns), and with neither walks through the exports.
+- Step 3 asks which platforms, offers each connection as skippable, says "Claude needs at least one connected account to build campaigns for you. Where there's no connector for your account, it can still read your figures from a report you download", checks each connection itself with `session_connectors_status` (never asks what's on screen), switches it on or points to Connect, and proves it with one read (the account name and the last 7 days' spend) before writing a `connected` row with today's date in `apps/home/data/connections.json`. A platform with no connector gets the shared no-connector sentence word for word, an `export-only` row and the exports clicks. A platform they'd rather not connect yet is `not-connected` with "Chose not to connect yet"; one that still won't connect is `needs-attention`. Every platform they use has a row.
 - Step 4 asks about the customer and any ads run before, and saves `context/ads.md`.
 - Step 5 suggests caps from the budget and a target with the sums shown, lets the owner decide, and saves `settings` (including `result.worth` and `closeRate` for a lead).
 - Step 6 reads figures, writes a summary and suggestions, and offers a first campaign: "It stays a draft until you approve it."

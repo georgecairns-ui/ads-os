@@ -41,6 +41,7 @@ If `context/ads.md` still says "Status: not filled in yet", you can't draft a ca
 6. **You never type a total.** `figures` holds the platforms' raw daily numbers. The app works out spend, results, cost per result, return, lights and pace. Never write any of those into the data file, and never state a number in a summary or suggestion that the app didn't show.
 7. **Never invent proof.** No made-up results, reviews, prices, offers, numbers or customer names. If an ad needs one, ask for it.
 8. **Nothing secret in this folder.** No passwords, tokens or customer lists in any file here, and never ask for them in chat. The connection keeps the sign-in. See `.claude/skills/connect-a-tool`.
+   `apps/home/data/connections.json` says which apps you can reach (setup step 3 connects Meta Ads and Google Ads). Only write `connected` after a real read works; `update-my-ads` keeps it up to date.
 9. **Never delete their files, their campaigns or their figures.** Drop a draft or mark a suggestion dismissed instead. Old things go to `files/99-archive`.
 10. **Pictures and videos are theirs.** You write the words and describe the picture you'd want. You never make or edit one.
 

@@ -4,6 +4,8 @@ Claude ticks each step when it's done and adds a short note, so setup can pick u
 
 Setup status: not started
 
+Guide mode: not asked yet
+
 - [ ] 1. Get to know the business (and make the app look like it)
 - [ ] 2. Add the claude-ads skills
 - [ ] 3. Where your ads are (connect Meta and Google Ads, or download a report)

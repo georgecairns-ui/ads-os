@@ -274,6 +274,26 @@ async function runChecks(label, port, root, kind) {
     assert.deepStrictEqual(onDisk(), { n: 5, list: [1, 2, 3, 4, 5] });
   });
 
+  // ---------- 3. Shared version 13: Home's connections file ----------
+  await check("Home's connections file reads and saves like any data file, and no other Home file name is served", async function () {
+    const f = path.join(root, "apps", "home", "data", "connections.json");
+    fs.mkdirSync(path.dirname(f), { recursive: true });
+    fs.writeFileSync(f, JSON.stringify({ version: 1, connections: {} }));
+    const got = await request(port, "GET", "/api/data/home/connections.json");
+    assert.strictEqual(got.status, 200, "GET should be 200");
+    assert.deepStrictEqual(json(got), { version: 1, connections: {} });
+    const body = JSON.stringify({ version: 1, connections: { gmail: { name: "Gmail", status: "connected", how: "Claude connector", checked: "2026-10-28", note: "" } } });
+    const saved = await request(port, "PUT", "/api/data/home/connections.json", { type: "application/json", body: Buffer.from(body), headers: same });
+    assert.strictEqual(saved.status, 200, "PUT should be 200");
+    assert.strictEqual(JSON.parse(fs.readFileSync(f, "utf8")).connections.gmail.status, "connected");
+    // A real file, so the 404 proves the helper refuses it rather than just not finding it
+    const secrets = path.join(root, "apps", "home", "data", "secrets.json");
+    fs.writeFileSync(secrets, JSON.stringify({ secret: true }));
+    assert.strictEqual((await request(port, "GET", "/api/data/home/secrets.json")).status, 404, "any other Home file is refused");
+    fs.unlinkSync(secrets);
+    await alive();
+  });
+
   console.log(label + ": " + passed + " checks passed");
 }
 

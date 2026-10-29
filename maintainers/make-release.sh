@@ -176,8 +176,31 @@ for f in sorted(root.rglob("*")):
         continue
     txt = f.read_text(errors="ignore")
     rel = str(f.relative_to(root))
-    if "archive/refs/heads" in txt or "raw.githubusercontent.com" in txt:
-        problems.append(f"{rel} uses an old public download address: since shared version 12 every download uses the person's GitHub sign-in (gh)")
+    if "raw.githubusercontent.com" in txt:
+        problems.append(f"{rel} uses raw.githubusercontent.com: read files from the downloaded copy instead")
+    # Shared version 13: setup never gives up on a connection, never asks what's on screen, and never uses keys or GitHub sign-in
+    v13_scope = rel == "START-HERE.md" or rel == "README.md" or rel.startswith("setup/") or rel.startswith(".claude/skills/connect-a-tool/") or rel.startswith(".claude/skills/get-updates/")
+    # The give-up checks apply only to the files that connect apps (elsewhere "move on" or "skip it" is harmless)
+    connect_scope = (re.fullmatch(r"setup/0[2-4][^/]*\.md", rel) or re.fullmatch(r"setup/[^/]*(connect|check-ins|make-it-automatic)[^/]*\.md", rel)
+                     or re.fullmatch(r"setup/connections/[^/]+\.md", rel) or rel.startswith(".claude/skills/connect-a-tool/")
+                     # Ads OS connects Meta Ads and Google Ads in its own step 3
+                     or rel == "setup/ads-02-where-your-ads-are.md")
+    if v13_scope and f.suffix == ".md" and rel != "setup/connections/xero-drafts.md":
+        give_up = (
+            (r"and (move|carry) on\b(?! (from|setting up))", "lets Claude give up on a step"),
+            (r"\bthen move on\b", "lets Claude give up on a step"),
+            (r"\bskip it\b", "lets Claude give up on a step"),
+            (r"try once more", "lets Claude give up on a connection"),
+            (r"ask (the person |them )?what they (actually |can )?see", "asks the person what's on screen: Claude checks the connection status itself"),
+        ) if connect_scope else ()
+        for pattern, why in give_up + (
+            (r"Route 2: API key", "offers an API key route"),
+            (r"claude mcp add", "adds a server outside Claude's Connectors screen"),
+            (r"save-key", "asks for a key"),
+            (r"\bgh (auth|api|repo)\b", "needs a GitHub sign-in while the tools are public"),
+        ):
+            if re.search(pattern, txt, re.I):
+                problems.append(f"{rel} {why} (shared version 13): matched {pattern!r}")
     for old in ("open-task-list", "start-task-list"):
         if old in txt:
             problems.append(f"{rel} uses the old name {old} (it is now open-the-app / start-app, the same in every tool)")
@@ -203,7 +226,7 @@ rsync -a \
 find "$OUT" -mindepth 2 -type d -name .claude -empty -prune -exec rm -rf {} +
 
 # ---------- 3. Checks ----------
-for f in "START-HERE.md" "CLAUDE.md" "LICENSE" "README.md" "Open Ads OS.html" "apps/ads/index.html" "apps/ads/data/ads.json" "apps/ads/data/approvals.json" "apps/ads/menu.json" "apps/ads/home-boxes.js" "apps/ads/claude-jobs.json" "apps/ads/CLAUDE.md" "apps/ads/ATTACH-CLAUDE.md" "apps/ads/app/app.js" "apps/ads/app/app.css" "apps/ads/app/views.css" "apps/ads/app/model.js" "apps/ads/app/report.js" "apps/ads/app/components.js" "apps/ads/app/charts.js" "apps/ads/app/drawer.js" "apps/ads/app/media.js" "apps/ads/app/settings.js" "apps/ads/app/view-overview.js" "apps/ads/app/view-campaigns.js" "apps/ads/app/view-builds.js" "apps/ads/app/view-week.js" "apps/ads/app/view-health.js" "context/ads.md" "setup/progress.md" "setup/05-get-to-know-the-business.md" "setup/ads-01-install-claude-ads.md" "setup/ads-02-where-your-ads-are.md" "setup/ads-03-your-customer.md" "setup/ads-04-budget-and-results.md" "setup/ads-05-first-look.md" "setup/09-check-and-hand-over.md" "setup/scripts/install-claude-ads.sh" "setup/scripts/install-claude-ads.ps1" "setup/connections/meta-ads.md" "setup/connections/google-ads.md" "files/04-marketing/ads/README.md" "files/04-marketing/ads/exports/README.md" "skills-to-upload/README.md" ".claude/skills/README.md" ".claude/settings.json" ".claude/skills/build-a-campaign/references/campaign-basics.md" ".claude/skills/build-in-account/references/connections.md" ".claude/skills/build-in-account/references/google-ads-editor.md" ".claude/skills/update-my-ads/references/exports.md" "setup/scripts/save-key.sh" "setup/scripts/start-app.sh" "apps/server/server.js" "apps/server/server.py" "setup/connections/README.md" "toolkit.json" "ATTACHING.md" "apps/installed.json" "apps/shared/catalogue.json" "apps/shared/VERSION" "apps/shared/sidebar.css" "apps/shared/js/sidebar.js" "apps/shared/js/theme.js" "apps/shared/js/braindump.js" ".claude/skills/sort-brain-dump/SKILL.md" "apps/shared/images/claude-icon.png" "apps/home/index.html" "apps/home/home.js" "apps/home/home.css" "apps/shared/fonts/Figtree-Variable.woff2" "docs/CUSTOMISING.md" "docs/PRIVACY-AND-SAFETY.md" "setup/as-installed/README.md" ".claude/skills/get-updates/SKILL.md" ".claude/skills/open-the-app/SKILL.md" ".claude/skills/match-my-brand/SKILL.md"; do
+for f in "START-HERE.md" "CLAUDE.md" "LICENSE" "README.md" "Open Ads OS.html" "apps/ads/index.html" "apps/ads/data/ads.json" "apps/ads/data/approvals.json" "apps/ads/menu.json" "apps/ads/home-boxes.js" "apps/ads/claude-jobs.json" "apps/ads/CLAUDE.md" "apps/ads/ATTACH-CLAUDE.md" "apps/ads/app/app.js" "apps/ads/app/app.css" "apps/ads/app/views.css" "apps/ads/app/model.js" "apps/ads/app/report.js" "apps/ads/app/components.js" "apps/ads/app/charts.js" "apps/ads/app/drawer.js" "apps/ads/app/media.js" "apps/ads/app/settings.js" "apps/ads/app/view-overview.js" "apps/ads/app/view-campaigns.js" "apps/ads/app/view-builds.js" "apps/ads/app/view-week.js" "apps/ads/app/view-health.js" "context/ads.md" "setup/progress.md" "setup/05-get-to-know-the-business.md" "setup/ads-01-install-claude-ads.md" "setup/ads-02-where-your-ads-are.md" "setup/ads-03-your-customer.md" "setup/ads-04-budget-and-results.md" "setup/ads-05-first-look.md" "setup/09-check-and-hand-over.md" "setup/scripts/install-claude-ads.sh" "setup/scripts/install-claude-ads.ps1" "setup/connections/meta-ads.md" "setup/connections/google-ads.md" "files/04-marketing/ads/README.md" "files/04-marketing/ads/exports/README.md" "skills-to-upload/README.md" ".claude/skills/README.md" ".claude/settings.json" ".claude/skills/build-a-campaign/references/campaign-basics.md" ".claude/skills/build-in-account/references/connections.md" ".claude/skills/build-in-account/references/google-ads-editor.md" ".claude/skills/update-my-ads/references/exports.md" "setup/scripts/save-key.sh" "setup/scripts/start-app.sh" "apps/server/server.js" "apps/server/server.py" "setup/connections/README.md" "toolkit.json" "ATTACHING.md" "apps/installed.json" "apps/shared/catalogue.json" "apps/shared/VERSION" "apps/shared/sidebar.css" "apps/shared/js/sidebar.js" "apps/shared/js/theme.js" "apps/shared/js/braindump.js" "apps/shared/js/connections.js" "apps/shared/js/connections-box.js" ".claude/skills/sort-brain-dump/SKILL.md" "apps/shared/images/claude-icon.png" "apps/home/index.html" "apps/home/home.js" "apps/home/home.css" "apps/shared/fonts/Figtree-Variable.woff2" "docs/CUSTOMISING.md" "docs/PRIVACY-AND-SAFETY.md" "setup/as-installed/README.md" ".claude/skills/get-updates/SKILL.md" ".claude/skills/open-the-app/SKILL.md" ".claude/skills/match-my-brand/SKILL.md"; do
   [ -e "$OUT/$f" ] || fail "missing $f"
 done
 for f in apps/ads/data/ads.json apps/ads/data/approvals.json apps/ads/menu.json apps/ads/claude-jobs.json toolkit.json apps/installed.json apps/shared/catalogue.json .claude/settings.json; do
