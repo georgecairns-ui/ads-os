@@ -1,10 +1,12 @@
 /*
-  Checks 2 things about the helper, over real http requests, against BOTH helpers (server.js and server.py):
+  Checks 3 things about the helper, over real http requests, against BOTH helpers (server.js and server.py):
     1. Safety: no request, however badly formed, can stop the helper or get a 5xx answer.
-       (For example GET /% used to stop the Node helper.)
+       (For example GET /% used to stop the Node helper, and a data file with a byte that isn't UTF-8 stopped the Python one answering.)
     2. Lost updates: a save that says which copy of the file it was based on (If-Match) is refused with
        409 if the file has changed since, and apps/shared/js/store.js then reads again, makes the same
        change again and saves. An older app that sends no version still saves as before.
+    3. Claude runs: a job that fails (no log folder, a prompt Claude can't be started with) fails on its own,
+       and the helper never stays stuck saying a run is in progress.
   Run: node maintainers/test-helper-safety.js           (the Node helper, and the Python one if python3 is there)
        node maintainers/test-helper-safety.js js        (only apps/server/server.js)
        node maintainers/test-helper-safety.js py        (only apps/server/server.py)
@@ -76,11 +78,11 @@ function raw(port, text) {
   });
 }
 
-async function startHelper(root, kind) {
+async function startHelper(root, kind, extraEnv) {
   const port = await freePort();
   const file = path.join(root, "apps", "server", kind === "py" ? "server.py" : "server.js");
-  const child = kind === "py" ? spawn("python3", ["-B", file], { env: Object.assign({}, process.env, { TLOS_PORT: String(port), PYTHONDONTWRITEBYTECODE: "1" }) })
-    : spawn(process.execPath, [file], { env: Object.assign({}, process.env, { TLOS_PORT: String(port), TLOS_AUTO_CLAUDE: "off" }) });
+  const child = kind === "py" ? spawn("python3", ["-B", file], { env: Object.assign({}, process.env, { TLOS_PORT: String(port), PYTHONDONTWRITEBYTECODE: "1" }, extraEnv) })
+    : spawn(process.execPath, [file], { env: Object.assign({}, process.env, { TLOS_PORT: String(port), TLOS_AUTO_CLAUDE: "off" }, extraEnv) });
   let output = "";
   child.stdout.on("data", function (c) { output += c; });
   child.stderr.on("data", function (c) { output += c; });
@@ -169,6 +171,21 @@ async function runChecks(label, port, root, kind) {
       assert.strictEqual(res.status, 400, v + " was " + res.status);
     }
     assert.strictEqual(fs.readFileSync(file, "utf8"), before);
+  });
+  await check("a data file with a byte that isn't UTF-8 (a £ saved by Windows PowerShell 5.1) still reads, with the same version from both helpers, and saves", async function () {
+    const kept = fs.readFileSync(file);
+    fs.writeFileSync(file, Buffer.concat([Buffer.from('{"n":1,"list":["'), Buffer.from([0xa3]), Buffer.from('5"]}\n')]));
+    try {
+      const read = await request(port, "GET", url);
+      assert.strictEqual(read.status, 200, "GET should be 200, was " + read.status);
+      assert.deepStrictEqual(json(read), { n: 1, list: ["�5"] });
+      const text = fs.readFileSync(file).toString("utf8");   // what server.js reads: the bad byte becomes U+FFFD
+      assert.strictEqual(etag(read), '"' + require("crypto").createHash("sha256").update(text).digest("hex").slice(0, 24) + '"');
+      const res = await put('{"n":2,"list":["£5"]}', { "If-Match": etag(read) });
+      assert.strictEqual(res.status, 200, "a save based on that version should be 200, was " + res.status);
+      assert.deepStrictEqual(onDisk(), { n: 2, list: ["£5"] });
+    } finally { fs.writeFileSync(file, kept); }
+    await alive();
   });
 
   // ---------- 2. Lost updates ----------
@@ -324,6 +341,72 @@ async function checkOldHelper() {
   finally { server.close(); }
 }
 
+// ---------- 4. Claude runs: a job that fails must never leave the helper stuck ----------
+// Runs real jobs through a stand-in `claude` (a script that exits 0), in a home folder of its own so no real log is touched.
+async function checkClaudeRuns(kind) {
+  const label = kind === "py" ? "Python helper, Claude runs" : "Node helper, Claude runs";
+  if (process.platform === "win32") { console.log(label + ": skipped on Windows (the stand-in claude is a shell script)"); return; }
+  const root = scratchCopy();
+  const home = path.join(root, "home");
+  const logs = path.join(home, "Library", "Logs");
+  fs.mkdirSync(logs, { recursive: true });
+  const fake = path.join(root, "fake-claude");
+  fs.writeFileSync(fake, "#!/bin/sh\nexit 0\n", { mode: 0o755 });
+  fs.writeFileSync(path.join(root, "apps", "plain", "claude-jobs.json"), JSON.stringify({ jobs: {
+    good: { label: "a good job", prompt: "Do nothing." },
+    nul: { label: "a job with a NUL in its prompt", prompt: "Do\u0000nothing." }
+  } }));
+  let helper = null, passed = 0;
+  async function check(name, fn) {
+    try { await fn(); passed += 1; } catch (e) { console.error("FAILED (" + label + "): " + name + "\n  " + e.message); process.exitCode = 1; throw e; }
+  }
+  // Asks for a job, then waits until the helper says no job is running, and returns the last result
+  async function run(job) {
+    const res = await request(helper.port, "POST", "/api/claude/run/plain/" + job, { type: "application/json", body: Buffer.from("{}"), headers: { Origin: "http://127.0.0.1:" + helper.port } });
+    assert.strictEqual(res.status, 202, "asking for the " + job + " job should be 202, was " + res.status);
+    for (let i = 0; i < 100; i++) {
+      await new Promise(function (r) { setTimeout(r, 50); });
+      const status = json(await request(helper.port, "GET", "/api/claude/status"));
+      if (!status.running && status.lastJob === "plain:" + job) return status.lastResult;
+    }
+    throw new Error("the " + job + " job never finished: the helper still says a run is in progress");
+  }
+  async function start(extraEnv) {
+    if (helper) helper.child.kill();
+    helper = await startHelper(root, kind, Object.assign({ HOME: home, TLOS_AUTO_CLAUDE: "on", TLOS_CLAUDE: fake }, extraEnv));
+  }
+  try {
+    await start({});
+    await check("a job runs and finishes", async function () {
+      assert.strictEqual(await run("good"), "ok");
+    });
+    await check("a job Claude can't be started with (a NUL in its prompt) fails, and the next job still runs", async function () {
+      assert.strictEqual(await run("nul"), "failed");
+      assert.strictEqual(await run("good"), "ok");
+    });
+    await check("a job whose log can't be written fails, and the helper keeps going and answering", async function () {
+      fs.rmSync(path.join(logs, "plain-claude.log"), { force: true });   // written by the jobs above
+      fs.mkdirSync(path.join(logs, "plain-claude.log"));   // a folder where the log file should be: opening it fails
+      try {
+        assert.strictEqual(await run("good"), "failed");
+        assert.strictEqual(await run("good"), "failed");
+        assert.strictEqual((await request(helper.port, "GET", "/api/alive.js")).status, 200);
+      } finally { fs.rmdirSync(path.join(logs, "plain-claude.log")); }
+      assert.strictEqual(await run("good"), "ok");
+    });
+    if (kind === "py") {
+      await check("with no ~/Library/Logs (Windows) and a TMPDIR that doesn't exist, the log goes to a temporary folder that does", async function () {
+        await start({ HOME: path.join(root, "no-logs-home"), TMPDIR: path.join(root, "not-there") });
+        assert.strictEqual(await run("good"), "ok");
+      });
+    }
+    console.log(label + ": " + passed + " checks passed");
+  } finally {
+    if (helper) helper.child.kill();
+    fs.rmSync(root, { recursive: true, force: true });
+  }
+}
+
 async function runOne(kind) {
   const root = scratchCopy();
   let helper = null;
@@ -334,6 +417,7 @@ async function runOne(kind) {
     if (helper) helper.child.kill();
     fs.rmSync(root, { recursive: true, force: true });
   }
+  await checkClaudeRuns(kind);
 }
 
 (async function main() {
